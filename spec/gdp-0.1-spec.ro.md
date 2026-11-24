@@ -367,7 +367,7 @@ Validarea are 19 reguli: 12 erori, care fac pachetul invalid, și 7 avertismente
 
 | Cod | Nivel | Regula |
 | --- | --- | --- |
-| E01 | eroare | `manifest.toml` există și are `format`, `version`, `project.uuid` (UUID valid), `project.id`, `project.name`, `project.crs`. |
+| E01 | eroare | `manifest.toml` există și are `format`, `version`, `project.uuid` (UUID valid), `project.id`, `project.name`, `project.crs`. Manifestul și fișierele de campanie sunt TOML valid și respectă schema lor; cheile de încercare și metodele țin de E10, fracțiunile de E11. |
 | E02 | eroare | `points` are cel puțin un rând, iar `campaigns/` are cel puțin un fișier. |
 | E03 | eroare | Fiecare tabel prezent are toate coloanele obligatorii, cu nume și unitate exacte. |
 | E04 | eroare | Valorile se pot citi în tipul coloanei, iar câmpurile obligatorii nu sunt goale. |
@@ -388,6 +388,18 @@ Validarea are 19 reguli: 12 erori, care fac pachetul invalid, și 7 avertismente
 | W07 | avertisment | Pachetul are `units.csv`, dar un strat nu are `unit`. |
 
 Validatorul de referință raportează fiecare problemă cu fișierul, rândul și coloana, iar în xlsx cu sheet-ul și celula. Exemplu: `layers.csv:14:depth_base[m] E07 depth_base (3.20) ≤ depth_top (3.40)`.
+
+**Sub-verificări și mesaje.** Fiecare regulă are în schemă (`rules[*].checks`) una sau mai multe sub-verificări, fiecare cu un identificator stabil și un șablon de mesaj în engleză, cu parametri între acolade: E07 are `top_not_above_base` și `beyond_final_depth`, de exemplu. Fișierul de localizare traduce șablonul sub cheia `rules.<cod>.checks.<id>`; fără traducere se folosește șablonul englezesc. Astfel, o altă implementare produce aceleași mesaje citind doar schema.
+
+**Locații.** Rândul e linia fizică din fișier, cu antetul pe linia 1. Problemele din antet au rândul 1, cele care privesc un fișier întreg sau un fișier TOML nu au rând. Coloana e celula de antet așa cum e scrisă (`depth_base[m]`), numele canonic când coloana lipsește, iar în TOML cheia cu puncte (`fractions.upper_mm`).
+
+**Modul draft.** Validatorul deosebește *lipsurile* de *contradicții*. O lipsă se rezolvă adăugând informație: manifest, cheie obligatorie, campanie, coloană sau valoare obligatorie, campania unui punct când pachetul are mai multe, standardul unei încercări cu date, secțiunea `[fractions]`, `upper_mm` pentru `custom`. Sub-verificările de acest fel au în schemă `"missing": true`. O contradicție înseamnă că ceva deja scris e greșit: unitate, tip, cheie duplicată, referință spre ceva inexistent, `wL < wP`, straturi suprapuse. În modul normal, lipsurile sunt erori. În modul draft ele devin un raport de completitudine și nu fac pachetul invalid, iar contradicțiile rămân erori. Fiecare lipsă indică fișierul, rândul și câmpul, iar acolo unde valoarea vine dintr-o listă închisă, și valorile permise (`allowed`), de exemplu standardul de referință sau `"unknown"` pentru o încercare. Un program care construiește pachete poate pune întrebarea direct pe baza ei.
+
+**Formate de ieșire.** În text, câte o linie per problemă, întâi erorile, apoi avertismentele, apoi, în modul draft, lipsurile după o linie `missing:`; ultima linie e un rezumat (`2 errors, 1 warnings, 3 missing`). În JSON, un obiect cu `package`, `draft`, `ok` și lista `issues`; fiecare problemă are `level` (`error`, `warning`, `missing`), `code`, `check`, `path`, `row`, `column`, `params` (valorile exact cum sunt scrise în fișier), `message` și, unde e cazul, `allowed`.
+
+**Coduri de ieșire.** Linia de comandă (`gdp_validate.py [--draft] [--format text|json] [--lang ro] PACHET`) întoarce 0 fără erori, 1 cu erori și 2 când pachetul nu se poate deschide. Avertismentele și lipsurile nu schimbă codul.
+
+**Versiuni.** Validatorul verifică doar versiunea lui. Orice altă versiune din manifest dă E01 `version_unsupported`, iar celelalte verificări nu se mai fac, pentru că validatorul nu poate judeca reguli pe care nu le cunoaște. Importatorul poate încărca totuși un pachet cu aceeași versiune majoră și o versiune minoră mai nouă (`--accept-newer`): îl verifică după regulile pe care le cunoaște, raportează fișierele necunoscute ca avertismente (W02) și îl importă dacă nu are erori.
 
 ## 10. Exemplu complet: un foraj și un CPTu
 
