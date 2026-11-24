@@ -37,7 +37,7 @@ The main rules:
 - **One standard and one method per test, per campaign.** Each campaign file declares the standard and the method of every test it contains. A different standard or method means a different campaign. A sample can override the campaign of its point, for example a verification duplicate tested elsewhere.
 - **A package is a complete snapshot of one project.** The project has a mandatory `project.uuid`, generated once and kept across package versions. Importing a package replaces everything stored for that project, so many packages can share one database without key collisions.
 - **Fixed SI units.** Each unit is written in the header (`depth[m]`, `qc[MPa]`), spelled as in UCUM, and there is no unit option.
-- **Only measured quantities are stored.** Derived values such as IP, IC, qt or Ic are recomputed, so they cannot be inconsistent.
+- **Only measured quantities are stored.** Derived values such as IP, IC or qt are recomputed, so they cannot be inconsistent.
 - **Extensions.** Custom columns take the `x_` prefix and are ignored by readers that do not know them.
 - **Source documents.** Any point, layer, water observation, sample, lab row or CPT test can name its source in `attachments/` (`source_file`, optionally `#page=N`), so every value can be checked against the page it came from.
 - **Linear works.** Points can also carry a chainage and an offset from an alignment (`station[m]`, `offset[m]`, `alignment`). The alignment is only named, not described in the package, so the chainage is informative and the coordinates remain authoritative.
