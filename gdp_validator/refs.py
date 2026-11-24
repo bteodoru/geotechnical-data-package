@@ -34,18 +34,20 @@ def _foreign_keys(ctx, t, spec) -> None:
         [field] = fk["fields"]
         target = fk["reference"]["table"]
         [target_field] = fk["reference"]["fields"]
+        target_spec = SCHEMA["tables"][target]
         target_table = ctx.tables.get(target)
         if target_table is None:
-            if SCHEMA["tables"][target]["path"] in ctx.pkg.names():
-                continue                      # present but unreadable: already reported
-            keys = set()
-        elif target_field not in target_table.usable:
-            continue                          # key column unusable: already reported
+            if target_spec["path"] in ctx.pkg.names() or target_spec.get("required"):
+                continue                      # unreadable (E03) or required and absent (E02)
+            keys, broken = set(), set()
+        elif target_field not in target_table.usable or (target_spec.get("required") and not target_table.rows):
+            continue                          # key column unusable (E03) or no rows (E02)
         else:
             keys = {r.values[target_field] for r in target_table.rows if target_field in r.values}
+            broken = {r.cells.get(target_field) for r in target_table.rows if not r.ok}
         for row in t.rows:
             value = row.values.get(field)
-            if value is not None and value not in keys:
+            if value is not None and value not in keys and row.cells[field] not in broken:
                 ctx.out.add("E06", "unresolved", t.path, row.line, t.col(field),
                             column=field, value=row.cells[field], table=target)
 
@@ -60,5 +62,5 @@ def _campaigns(ctx, t) -> None:
     if t.name == "points" and len(ctx.campaigns) >= 2:
         for row in t.rows:
             if "point_id" in row.values and not row.cells.get("campaign"):
-                ctx.out.add("E06", "campaign_required", t.path, row.line, t.col("campaign"),
+                ctx.out.add("E06", "campaign_required", t.path, row.line, t.col("campaign"), allowed=list(ctx.campaigns),
                             point_id=row.values["point_id"], count=len(ctx.campaigns))

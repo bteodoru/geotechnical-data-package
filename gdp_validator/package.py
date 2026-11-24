@@ -2,11 +2,18 @@
 from __future__ import annotations
 
 import zipfile
+import zlib
 from pathlib import Path
 
 
 class PackageError(Exception):
     """The package cannot be opened at all (missing path, not a zip, not a folder)."""
+
+
+def ignored(name: str) -> bool:
+    """Files never inspected: attachments, macOS metadata (__MACOSX/, dotfiles)."""
+    parts = name.split("/")
+    return parts[0] in ("__MACOSX", "attachments") or any(p.startswith(".") for p in parts)
 
 
 class Package:
@@ -32,6 +39,8 @@ class Package:
             return self.zip.read(name) if self.zip else (self.path / name).read_bytes()
         except (KeyError, FileNotFoundError, IsADirectoryError):
             return None
+        except (zipfile.BadZipFile, zlib.error, EOFError) as exc:
+            raise PackageError(f"{self.path}: {name} is corrupt ({exc})") from exc
 
     def read_text(self, name: str) -> str | None:
         """UTF-8 text with an optional BOM; raises UnicodeDecodeError for other encodings."""

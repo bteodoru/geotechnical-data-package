@@ -8,6 +8,7 @@ import re
 
 from .context import Context, Row, Table, canonical_header
 from .documents import CAMPAIGN_RE, MANIFEST
+from .package import ignored
 from .schema import SCHEMA
 
 HEADER_RE = re.compile(r"^(?P<name>[A-Za-z_][A-Za-z0-9_]*)(\[(?P<unit>[^\]]+)\])?$")
@@ -21,17 +22,12 @@ RANGES = next(r for r in SCHEMA["rules"] if r["code"] == "W03")["ranges"]
 FIXED_TABLES = {name: t for name, t in SCHEMA["tables"].items() if "{" not in t["path"]}
 
 
-def _ignored(name: str) -> bool:
-    parts = name.split("/")
-    return parts[0] in ("__MACOSX", "attachments") or any(p.startswith(".") for p in parts)
-
-
 def _num(x) -> str:
     return format(x, "g")
 
 
 def run(ctx: Context) -> None:
-    names = [n for n in ctx.pkg.names() if not _ignored(n)]
+    names = [n for n in ctx.pkg.names() if not ignored(n)]
     known = {MANIFEST} | {t["path"] for t in FIXED_TABLES.values()}
     for name in names:
         if name in known or CAMPAIGN_RE.fullmatch(name) or CPT_DATA_RE.fullmatch(name):
@@ -74,7 +70,9 @@ def read_table(ctx: Context, table: str, path: str) -> Table | None:
         cells = [c.strip() for c in rec]
         if not any(cells):
             continue
-        row = Row(line=line, cells=dict(zip(keys, cells)), values={})
+        row = Row(line=line, cells={}, values={})
+        for key, cell in zip(keys, cells):
+            row.cells.setdefault(key, cell)      # a repeated column never overrides the first
         t.rows.append(row)
         if len(cells) != len(keys):
             ctx.out.add("E04", "row_length", path, line, found=len(cells), expected=len(keys))
@@ -125,6 +123,12 @@ def _header(ctx, table, path, fields, cells):
     return keys, header, usable
 
 
+def closed_list(f: dict) -> list[str] | None:
+    """Allowed values of a code field with a closed vocabulary, else None."""
+    vocab = VOCAB.get(f.get("vocabulary", ""))
+    return vocab if isinstance(vocab, list) else None
+
+
 def _parse(ftype: str, raw: str):
     """Parsed value, or raise ValueError."""
     if ftype == "number":
@@ -155,7 +159,7 @@ def _cell(ctx: Context, t: Table, row: Row, f: dict, raw: str) -> None:
     column = t.col(name)
     if raw == "":
         if f.get("required") is True:
-            ctx.out.add("E04", "required_empty", t.path, row.line, column, column=name)
+            ctx.out.add("E04", "required_empty", t.path, row.line, column, allowed=closed_list(f), column=name)
             row.ok = False
         return
     try:

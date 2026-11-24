@@ -59,13 +59,15 @@ def _intervals(ctx: Context) -> None:
                             base=row.cells["depth_base"], top=row.cells["depth_top"])
 
 
-def _beyond(ctx, t, row, field, point_row) -> None:
+def _beyond(ctx, t, row, field, point_row) -> bool:
     if point_row is None or "final_depth" not in point_row.values or field not in row.values:
-        return
+        return False
     if row.values[field] > point_row.values["final_depth"]:
         ctx.out.add("E07", "beyond_final_depth", t.path, row.line, t.col(field), field=field,
                     value=row.cells[field], final_depth=point_row.cells["final_depth"],
                     point_id=point_row.cells["point_id"])
+        return True
+    return False
 
 
 def _final_depth(ctx: Context) -> None:
@@ -78,8 +80,9 @@ def _final_depth(ctx: Context) -> None:
     for test_id, t in ctx.cpt_data.items():
         test = ctx.row_by_key("cpt_tests", "test_id", test_id)
         point_row = _point(ctx, test.values.get("point_id")) if test else None
-        for row in t.rows:
-            _beyond(ctx, t, row, "depth", point_row)
+        for row in t.rows:                 # one issue per series: a wrong final_depth is one fact
+            if _beyond(ctx, t, row, "depth", point_row):
+                break
 
 
 def _layers_by_point(ctx: Context) -> dict[str, list[Row]]:
@@ -145,7 +148,7 @@ def _samples_in_layers(ctx: Context, layers_by_point: dict[str, list[Row]]) -> N
             continue                      # already E07 beyond_final_depth
         if layer_of(layers, ref, final) is None:
             ctx.out.add("W06", "sample_outside_layers", t.path, row.line, t.col("depth_top"),
-                        depth=format(ref, "g"), sample_id=row.cells["sample_id"], point_id=v["point_id"])
+                        depth=format(ref, "g"), sample_id=row.cells.get("sample_id", ""), point_id=v["point_id"])
 
 
 def _units(ctx: Context) -> None:

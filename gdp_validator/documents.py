@@ -8,6 +8,7 @@ import tomllib
 from jsonschema import Draft202012Validator
 
 from .context import Context
+from .package import ignored
 from .schema import SCHEMA, VERSION
 
 MANIFEST = "manifest.toml"
@@ -63,6 +64,7 @@ def _dropped(error) -> bool:
 
 
 def _schema_errors(ctx: Context, path: str, doc: dict, kind: str) -> None:
+    seen: set[str] = set()
     for error in sorted(_VALIDATORS[kind].iter_errors(doc), key=lambda e: list(e.absolute_path)):
         if kind == "campaign" and _dropped(error):
             continue
@@ -70,8 +72,9 @@ def _schema_errors(ctx: Context, path: str, doc: dict, kind: str) -> None:
         if error.validator == "required":
             present = error.instance if isinstance(error.instance, dict) else {}
             for prop in error.validator_value:
-                if prop not in present:
-                    key = ".".join(parent + [prop])
+                key = ".".join(parent + [prop])
+                if prop not in present and key not in seen:
+                    seen.add(key)
                     ctx.out.add("E01", "required_key", path, None, key, key=key)
         else:
             key = ".".join(parent)
@@ -108,7 +111,7 @@ def campaign_files(ctx: Context) -> dict[str, str]:
     out = {}
     for name in ctx.pkg.names():
         m = CAMPAIGN_RE.fullmatch(name)
-        if m:
+        if m and not ignored(name):
             out[m[1]] = name
     return dict(sorted(out.items()))
 
@@ -152,7 +155,7 @@ def _check_methods(ctx: Context, path: str, methods) -> None:
             continue
         allowed = TESTS[key]["methods"]
         if not allowed:
-            ctx.out.add("E10", "unknown_method", path, None, column, method=value, test=key, allowed="none")
+            ctx.out.add("E10", "unknown_method", path, None, column, allowed=[], method=value, test=key)
         elif value not in allowed:
             ctx.out.add("E10", "unknown_method", path, None, column, allowed=allowed, method=value, test=key)
 
