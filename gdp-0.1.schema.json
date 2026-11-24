@@ -1,0 +1,1078 @@
+{
+  "$comment": "GDP (Geotechnical Data Package) v0.1 - machine-readable schema. Single source for the validator, xlsx template, table documentation and database schema. Language-neutral: human-language labels live in optional locale files.",
+  "format": "gdp",
+  "version": "0.1",
+  "localization": {
+    "path": "locales/gdp-{version}.{lang}.json",
+    "optional": true,
+    "note": "Locale files map schema paths (e.g. 'tables.lab_index.fields.w') to a label, description and synonyms. They are distributed with the schema, never inside packages."
+  },
+  "constants": {
+    "g": {
+      "value": 9.81,
+      "unit": "m/s2",
+      "use": "rho <-> gamma conversion"
+    }
+  },
+  "types": {
+    "id": {
+      "base": "string",
+      "pattern": "^[A-Za-z0-9_.-]{1,24}$"
+    },
+    "text": {
+      "base": "string"
+    },
+    "number": {
+      "base": "number"
+    },
+    "integer": {
+      "base": "integer"
+    },
+    "date": {
+      "base": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "datetime": {
+      "base": "string",
+      "format": "ISO 8601 with UTC offset"
+    },
+    "bool": {
+      "base": "boolean",
+      "values": [
+        "true",
+        "false"
+      ]
+    },
+    "code": {
+      "base": "string",
+      "note": "value from a vocabulary (field 'vocabulary')"
+    }
+  },
+  "csv": {
+    "encoding": "utf-8",
+    "bom_allowed": true,
+    "delimiter": ",",
+    "decimal": ".",
+    "quoting": "RFC 4180",
+    "missing_value": "",
+    "header": "name[unit]; dimensionless quantities without brackets"
+  },
+  "vocabularies": {
+    "point_type": [
+      "borehole",
+      "cpt",
+      "dp",
+      "trial_pit",
+      "well"
+    ],
+    "water_kind": [
+      "struck",
+      "stable",
+      "reading"
+    ],
+    "sample_kind": [
+      "undisturbed",
+      "disturbed",
+      "core",
+      "water"
+    ],
+    "filter_position": [
+      "u1",
+      "u2",
+      "u3"
+    ],
+    "soil_symbol": {
+      "open": true,
+      "note": "SR EN ISO 14688-2 symbols. Closed list is an open decision."
+    },
+    "tests": {
+      "water_content": {
+        "quantities": [
+          "w"
+        ],
+        "reference_standard": "SR EN ISO 17892-1",
+        "methods": []
+      },
+      "bulk_density": {
+        "quantities": [
+          "rho",
+          "gamma"
+        ],
+        "reference_standard": "SR EN ISO 17892-2",
+        "methods": [
+          "linear_measurement",
+          "immersion",
+          "fluid_displacement"
+        ]
+      },
+      "particle_density": {
+        "quantities": [
+          "rho_s",
+          "gamma_s"
+        ],
+        "reference_standard": "SR EN ISO 17892-3",
+        "methods": [
+          "fluid_pycnometer",
+          "gas_pycnometer"
+        ]
+      },
+      "grain_size": {
+        "quantities": [
+          "clay",
+          "silt",
+          "sand",
+          "gravel"
+        ],
+        "reference_standard": "SR EN ISO 17892-4",
+        "methods": [
+          "sieving",
+          "sieving_hydrometer",
+          "sieving_pipette",
+          "hydrometer",
+          "pipette",
+          "laser_diffraction"
+        ]
+      },
+      "atterberg": {
+        "quantities": [
+          "wL",
+          "wP"
+        ],
+        "reference_standard": "SR EN ISO 17892-12",
+        "methods": [
+          "fall_cone",
+          "casagrande"
+        ],
+        "method_applies_to": "wL"
+      },
+      "cpt": {
+        "quantities": [
+          "cpt_data"
+        ],
+        "reference_standard": "SR EN ISO 22476-1",
+        "methods": []
+      }
+    },
+    "reserved_tests": [
+      "oedometer",
+      "unconfined_compression",
+      "triaxial_uu",
+      "triaxial_cu",
+      "triaxial_cd",
+      "direct_shear",
+      "permeability",
+      "compaction",
+      "organic_content",
+      "carbonate_content",
+      "swelling",
+      "collapse"
+    ],
+    "fractions_registry": {
+      "$comment": "Registry: standard -> upper size limits of fractions [mm]. Grows with the standards registry.",
+      "SR EN ISO 14688-1": {
+        "clay": 0.002,
+        "silt": 0.063,
+        "sand": 2.0,
+        "gravel": 63.0
+      }
+    },
+    "standards_registry": [
+      "SR EN ISO 14688-1",
+      "SR EN ISO 14688-2",
+      "SR EN ISO 17892-1",
+      "SR EN ISO 17892-2",
+      "SR EN ISO 17892-3",
+      "SR EN ISO 17892-4",
+      "SR EN ISO 17892-12",
+      "SR EN ISO 22476-1"
+    ]
+  },
+  "documents": {
+    "manifest": {
+      "path": "manifest.toml",
+      "required": true,
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": [
+          "format",
+          "version",
+          "project"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "format": {
+            "const": "gdp"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+$"
+          },
+          "project": {
+            "type": "object",
+            "required": [
+              "uuid",
+              "id",
+              "name",
+              "crs"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "uuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "location": {
+                "type": "string"
+              },
+              "client": {
+                "type": "string"
+              },
+              "crs": {
+                "type": "string",
+                "pattern": "^EPSG:\\d+$"
+              },
+              "vertical_datum": {
+                "type": "string"
+              }
+            }
+          },
+          "producer": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "organisation": {
+                "type": "string"
+              },
+              "author": {
+                "type": "string"
+              },
+              "date": {
+                "type": "string",
+                "format": "date"
+              },
+              "software": {
+                "type": "string"
+              }
+            }
+          },
+          "profiles": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "cpt": {
+                "type": "string"
+              },
+              "lab_index": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "campaign": {
+      "path": "campaigns/{campaign}.toml",
+      "key_from_path": "campaign",
+      "min_count": 1,
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "organisation": {
+            "type": "string"
+          },
+          "year": {
+            "type": "integer",
+            "minimum": 1900,
+            "maximum": 2100
+          },
+          "standards": {
+            "type": "object",
+            "propertyNames": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "water_content",
+                    "bulk_density",
+                    "particle_density",
+                    "grain_size",
+                    "atterberg",
+                    "cpt",
+                    "oedometer",
+                    "unconfined_compression",
+                    "triaxial_uu",
+                    "triaxial_cu",
+                    "triaxial_cd",
+                    "direct_shear",
+                    "permeability",
+                    "compaction",
+                    "organic_content",
+                    "carbonate_content",
+                    "swelling",
+                    "collapse"
+                  ]
+                },
+                {
+                  "pattern": "^x_"
+                }
+              ]
+            },
+            "additionalProperties": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "methods": {
+            "type": "object",
+            "properties": {
+              "bulk_density": {
+                "enum": [
+                  "linear_measurement",
+                  "immersion",
+                  "fluid_displacement"
+                ]
+              },
+              "particle_density": {
+                "enum": [
+                  "fluid_pycnometer",
+                  "gas_pycnometer"
+                ]
+              },
+              "grain_size": {
+                "enum": [
+                  "sieving",
+                  "sieving_hydrometer",
+                  "sieving_pipette",
+                  "hydrometer",
+                  "pipette",
+                  "laser_diffraction"
+                ]
+              },
+              "atterberg": {
+                "enum": [
+                  "fall_cone",
+                  "casagrande"
+                ]
+              }
+            },
+            "patternProperties": {
+              "^x_": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "fractions": {
+            "type": "object",
+            "required": [
+              "source"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "upper_mm": {
+                "type": "object",
+                "required": [
+                  "clay",
+                  "silt",
+                  "sand",
+                  "gravel"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "clay": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "silt": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "sand": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "gravel": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                }
+              }
+            },
+            "if": {
+              "properties": {
+                "source": {
+                  "const": "custom"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "source",
+                "upper_mm"
+              ]
+            },
+            "else": {
+              "not": {
+                "required": [
+                  "upper_mm"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tables": {
+    "points": {
+      "path": "points.csv",
+      "required": true,
+      "min_rows": 1,
+      "primary_key": [
+        "point_id"
+      ],
+      "fields": [
+        {
+          "name": "point_id",
+          "type": "id",
+          "required": true,
+          "description": "Unique within the project."
+        },
+        {
+          "name": "type",
+          "type": "code",
+          "required": true,
+          "vocabulary": "point_type"
+        },
+        {
+          "name": "campaign",
+          "type": "id",
+          "required": false,
+          "references": "campaign",
+          "description": "Required when the package has more than one campaign."
+        },
+        {
+          "name": "easting",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        },
+        {
+          "name": "northing",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        },
+        {
+          "name": "elevation",
+          "type": "number",
+          "unit": "m",
+          "required": false,
+          "recommended": true
+        },
+        {
+          "name": "final_depth",
+          "type": "number",
+          "unit": "m",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "date_start",
+          "type": "date",
+          "required": false
+        },
+        {
+          "name": "date_end",
+          "type": "date",
+          "required": false
+        },
+        {
+          "name": "method",
+          "type": "text",
+          "required": false
+        },
+        {
+          "name": "remarks",
+          "type": "text",
+          "required": false
+        }
+      ]
+    },
+    "units": {
+      "path": "units.csv",
+      "required": false,
+      "primary_key": [
+        "unit_id"
+      ],
+      "fields": [
+        {
+          "name": "unit_id",
+          "type": "id",
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": false
+        },
+        {
+          "name": "remarks",
+          "type": "text",
+          "required": false
+        }
+      ]
+    },
+    "layers": {
+      "path": "layers.csv",
+      "required": false,
+      "primary_key": [
+        "point_id",
+        "depth_top"
+      ],
+      "foreign_keys": [
+        {
+          "fields": [
+            "point_id"
+          ],
+          "reference": {
+            "table": "points",
+            "fields": [
+              "point_id"
+            ]
+          }
+        },
+        {
+          "fields": [
+            "unit"
+          ],
+          "reference": {
+            "table": "units",
+            "fields": [
+              "unit_id"
+            ]
+          }
+        }
+      ],
+      "interval": [
+        "depth_top",
+        "depth_base"
+      ],
+      "fields": [
+        {
+          "name": "point_id",
+          "type": "id",
+          "required": true
+        },
+        {
+          "name": "depth_top",
+          "type": "number",
+          "unit": "m",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "depth_base",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": true
+        },
+        {
+          "name": "soil_symbol",
+          "type": "code",
+          "required": false,
+          "vocabulary": "soil_symbol"
+        },
+        {
+          "name": "unit",
+          "type": "id",
+          "required": false
+        }
+      ]
+    },
+    "water": {
+      "path": "water.csv",
+      "required": false,
+      "primary_key": null,
+      "foreign_keys": [
+        {
+          "fields": [
+            "point_id"
+          ],
+          "reference": {
+            "table": "points",
+            "fields": [
+              "point_id"
+            ]
+          }
+        }
+      ],
+      "fields": [
+        {
+          "name": "point_id",
+          "type": "id",
+          "required": true
+        },
+        {
+          "name": "kind",
+          "type": "code",
+          "required": true,
+          "vocabulary": "water_kind"
+        },
+        {
+          "name": "depth",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        },
+        {
+          "name": "datetime",
+          "type": "datetime",
+          "required": false
+        },
+        {
+          "name": "remarks",
+          "type": "text",
+          "required": false
+        }
+      ]
+    },
+    "samples": {
+      "path": "samples.csv",
+      "required": false,
+      "primary_key": [
+        "sample_id"
+      ],
+      "foreign_keys": [
+        {
+          "fields": [
+            "point_id"
+          ],
+          "reference": {
+            "table": "points",
+            "fields": [
+              "point_id"
+            ]
+          }
+        }
+      ],
+      "interval": [
+        "depth_top",
+        "depth_base"
+      ],
+      "fields": [
+        {
+          "name": "sample_id",
+          "type": "id",
+          "required": true
+        },
+        {
+          "name": "point_id",
+          "type": "id",
+          "required": true
+        },
+        {
+          "name": "campaign",
+          "type": "id",
+          "required": false,
+          "references": "campaign"
+        },
+        {
+          "name": "depth_top",
+          "type": "number",
+          "unit": "m",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "depth_base",
+          "type": "number",
+          "unit": "m",
+          "required": false
+        },
+        {
+          "name": "kind",
+          "type": "code",
+          "required": true,
+          "vocabulary": "sample_kind"
+        },
+        {
+          "name": "remarks",
+          "type": "text",
+          "required": false
+        }
+      ]
+    },
+    "lab_index": {
+      "path": "lab/index.csv",
+      "profile": "lab_index",
+      "required": false,
+      "primary_key": [
+        "sample_id"
+      ],
+      "foreign_keys": [
+        {
+          "fields": [
+            "sample_id"
+          ],
+          "reference": {
+            "table": "samples",
+            "fields": [
+              "sample_id"
+            ]
+          }
+        }
+      ],
+      "exclusive_groups": [
+        {
+          "rule": "E12",
+          "options": [
+            [
+              "rho",
+              "rho_s"
+            ],
+            [
+              "gamma",
+              "gamma_s"
+            ]
+          ]
+        }
+      ],
+      "fields": [
+        {
+          "name": "sample_id",
+          "type": "id",
+          "required": true
+        },
+        {
+          "name": "w",
+          "type": "number",
+          "unit": "%",
+          "test": "water_content"
+        },
+        {
+          "name": "wL",
+          "type": "number",
+          "unit": "%",
+          "test": "atterberg"
+        },
+        {
+          "name": "wP",
+          "type": "number",
+          "unit": "%",
+          "test": "atterberg"
+        },
+        {
+          "name": "rho",
+          "type": "number",
+          "unit": "Mg/m3",
+          "test": "bulk_density"
+        },
+        {
+          "name": "rho_s",
+          "type": "number",
+          "unit": "Mg/m3",
+          "test": "particle_density"
+        },
+        {
+          "name": "gamma",
+          "type": "number",
+          "unit": "kN/m3",
+          "test": "bulk_density"
+        },
+        {
+          "name": "gamma_s",
+          "type": "number",
+          "unit": "kN/m3",
+          "test": "particle_density"
+        },
+        {
+          "name": "clay",
+          "type": "number",
+          "unit": "%",
+          "test": "grain_size"
+        },
+        {
+          "name": "silt",
+          "type": "number",
+          "unit": "%",
+          "test": "grain_size"
+        },
+        {
+          "name": "sand",
+          "type": "number",
+          "unit": "%",
+          "test": "grain_size"
+        },
+        {
+          "name": "gravel",
+          "type": "number",
+          "unit": "%",
+          "test": "grain_size"
+        },
+        {
+          "name": "remarks",
+          "type": "text"
+        }
+      ]
+    },
+    "cpt_tests": {
+      "path": "cpt/tests.csv",
+      "profile": "cpt",
+      "required": false,
+      "primary_key": [
+        "test_id"
+      ],
+      "foreign_keys": [
+        {
+          "fields": [
+            "point_id"
+          ],
+          "reference": {
+            "table": "points",
+            "fields": [
+              "point_id"
+            ]
+          }
+        }
+      ],
+      "fields": [
+        {
+          "name": "test_id",
+          "type": "id",
+          "required": true
+        },
+        {
+          "name": "point_id",
+          "type": "id",
+          "required": true
+        },
+        {
+          "name": "date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "name": "cone_area",
+          "type": "number",
+          "unit": "cm2",
+          "required": true
+        },
+        {
+          "name": "area_ratio",
+          "type": "number",
+          "required_if": "data series has column u",
+          "minimum": 0,
+          "maximum": 1
+        },
+        {
+          "name": "filter_position",
+          "type": "code",
+          "required_if": "data series has column u",
+          "vocabulary": "filter_position"
+        },
+        {
+          "name": "predrill_depth",
+          "type": "number",
+          "unit": "m"
+        },
+        {
+          "name": "equipment",
+          "type": "text"
+        },
+        {
+          "name": "remarks",
+          "type": "text"
+        }
+      ]
+    },
+    "cpt_data": {
+      "path": "cpt/data/{test_id}.csv",
+      "profile": "cpt",
+      "key_from_path": "test_id",
+      "parent": "cpt_tests",
+      "primary_key": [
+        "depth"
+      ],
+      "strictly_increasing": "depth",
+      "fields": [
+        {
+          "name": "depth",
+          "type": "number",
+          "unit": "m",
+          "required": true
+        },
+        {
+          "name": "qc",
+          "type": "number",
+          "unit": "MPa",
+          "required": true
+        },
+        {
+          "name": "fs",
+          "type": "number",
+          "unit": "kPa",
+          "required": true
+        },
+        {
+          "name": "u",
+          "type": "number",
+          "unit": "kPa"
+        },
+        {
+          "name": "inclination",
+          "type": "number",
+          "unit": "deg"
+        }
+      ]
+    }
+  },
+  "derivations": {
+    "sample_reference_depth": "depth_base empty ? depth_top : (depth_top + depth_base) / 2",
+    "sample_campaign": "samples.campaign ?? points.campaign ?? (the package's only campaign)",
+    "sample_unit": "layer of the point with depth_top <= reference_depth < depth_base (the last layer includes its base when base = final_depth) -> layers.unit",
+    "cpt_unit": "layer of the test's point with depth_top <= depth < depth_base (the last layer includes its base when base = final_depth) -> layers.unit"
+  },
+  "rules": [
+    {
+      "code": "E01",
+      "level": "error",
+      "text": "manifest.toml exists and is valid (format, version, project.uuid, project.id, project.name, project.crs)."
+    },
+    {
+      "code": "E02",
+      "level": "error",
+      "text": "points has at least one row; campaigns/ has at least one file."
+    },
+    {
+      "code": "E03",
+      "level": "error",
+      "text": "Required columns are present, with exact name and unit."
+    },
+    {
+      "code": "E04",
+      "level": "error",
+      "text": "Values parse as the column type; required fields are not empty."
+    },
+    {
+      "code": "E05",
+      "level": "error",
+      "text": "Primary keys are unique."
+    },
+    {
+      "code": "E06",
+      "level": "error",
+      "text": "References resolve (including layers.unit and campaign -> file). With several campaigns, every point names one."
+    },
+    {
+      "code": "E07",
+      "level": "error",
+      "text": "depth_top < depth_base; depths within [0, final_depth]."
+    },
+    {
+      "code": "E08",
+      "level": "error",
+      "text": "Layers of a point do not overlap."
+    },
+    {
+      "code": "E09",
+      "level": "error",
+      "text": "Every test_id has a data file and vice versa; depth strictly increasing."
+    },
+    {
+      "code": "E10",
+      "level": "error",
+      "text": "Codes come from the vocabularies; wL >= wP; campaign test keys and methods from the vocabulary or prefixed x_."
+    },
+    {
+      "code": "E11",
+      "level": "error",
+      "text": "Every test with data has its standard declared in the row's campaign; fractions.source is known, or custom with upper_mm."
+    },
+    {
+      "code": "E12",
+      "level": "error",
+      "text": "lab_index has either rho/rho_s or gamma/gamma_s."
+    },
+    {
+      "code": "W01",
+      "level": "warning",
+      "text": "Gaps in the layering, or layering does not cover [0, final_depth]."
+    },
+    {
+      "code": "W02",
+      "level": "warning",
+      "text": "Unknown column without x_ prefix."
+    },
+    {
+      "code": "W03",
+      "level": "warning",
+      "text": "Values outside plausible ranges.",
+      "ranges": {
+        "w": [
+          0,
+          150
+        ],
+        "qc": [
+          0,
+          100
+        ],
+        "rho": [
+          1.2,
+          2.6
+        ],
+        "gamma": [
+          11.77,
+          25.51
+        ]
+      }
+    },
+    {
+      "code": "W04",
+      "level": "warning",
+      "text": "Grain-size fractions sum differs from 100 % by more than 1 %."
+    },
+    {
+      "code": "W05",
+      "level": "warning",
+      "text": "Standard not in the registry."
+    },
+    {
+      "code": "W06",
+      "level": "warning",
+      "text": "Sample whose reference depth falls in no layer."
+    },
+    {
+      "code": "W07",
+      "level": "warning",
+      "text": "units.csv exists but a layer has no unit."
+    }
+  ]
+}
