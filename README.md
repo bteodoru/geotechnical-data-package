@@ -1,16 +1,17 @@
 # GDP — Geotechnical Data Package
 
-GDP (Geotechnical Data Package) is a format for the factual data of a geotechnical investigation. People can read and write it by hand, with the tools they already use (a text editor or a spreadsheet), and software, AI assistants included, can validate it automatically and help generate it. Two established formats already cover this data. AGS 4 is widely used, but its syntax and its dependence on a data dictionary make it hard to write or check by hand. DIGGS is comprehensive, but it is written in XML/GML, which is verbose and impractical without dedicated software. GDP aims to be simpler than both: a package is a folder of plain CSV tables, distributed as a zip file and described by a small TOML manifest and one file per investigation campaign.
+GDP (Geotechnical Data Package) is a format for the factual data of a geotechnical investigation. People can read and write it by hand, with the tools they already use (a text editor or a spreadsheet), and software, AI assistants included, can validate it automatically and help generate it. Two established formats already cover this data. AGS 4 is widely used, but its syntax and its dependence on a data dictionary make it hard to write or check by hand. DIGGS is comprehensive, but its XML/GML representation is verbose and hard to write, read or check by hand. GDP aims to be simpler than both: a package is a folder of plain CSV tables, distributed as a zip file and described by a small TOML manifest and one file per investigation campaign.
 
 Compared with AGS 4 and DIGGS:
 
 | | AGS 4 | DIGGS 2.6 | GDP |
 |---|---|---|---|
-| Layout | one file, many groups, GROUP/HEADING/UNIT/TYPE rows | one XML/GML document, nested elements (`Test > outcome > TestResult > results > ResultSet`) | one CSV per table |
-| Names | 4-letter codes (`GEOL_TOP`) | namespaced XML elements (`totalMeasuredDepth`) | readable names with the unit in the header (`depth_top[m]`) |
-| Keys | composite keys | `gml:id` on each object, referenced with `xlink:href="#id"` | one identifier per entity, unique in the project |
-| Units | UNIT row in each group | per value (`uom="m"`) | fixed per field, written once in the header |
-| Context | mostly per row or per group | procedure embedded in each test | per campaign: standards, methods and grain-size limits declared once |
+| Layout | one or more `.ags` files, each with several groups (GROUP/HEADING/UNIT/TYPE rows) | one XML/GML document: `samplingFeature`, `sample`, `observation`, `measurement`… with nested properties | one CSV per table |
+| Names | abbreviated codes (`GEOL_TOP`) | namespaced XML elements (`totalMeasuredDepth`) | readable names with the unit in the header (`depth_top[m]`) |
+| Keys | `LOCA_ID` for locations; composite keys in child groups (`LOCA_ID`, `GEOL_TOP`, `GEOL_BASE`) | `gml:id` on identifiable objects, referenced with `xlink:href="#id"` | one identifier per entity, unique in the project |
+| Units | declared per group in the UNIT row | given with measured values (`uom="m"`), depending on the data type | fixed per field, written once in the header |
+| Context | standards in `STND`, methods in test fields (`*_METH`) | a `procedure` with each test | per campaign: standards, methods and grain-size limits declared once |
+| Manual authoring | possible, with the data dictionary at hand | possible, but verbose | designed for a text editor or a spreadsheet |
 
 **Status: v0.1, draft.** Soils only; rock mechanics is out of scope for now. The schema is normative and in English; the specification text is currently written in Romanian.
 
@@ -123,7 +124,7 @@ Tests: `.venv/bin/pip install "pytest>=8" && .venv/bin/python -m pytest`.
 
 ## Relation to AGS and DIGGS
 
-GDP builds mainly on AGS 4. From it, GDP takes the organisation of data into one table per kind of record, the link from records to their source documents (`FILE_FSET`), and linear referencing: `LOCA_CNGE`, `LOCA_OFFS` and `LOCA_ALID` become `station`, `offset` and `alignment`, with a fixed unit and a sign convention added. AGS 4 also groups locations by investigation phase (`LOCA_CLST`). GDP campaigns play a similar role, but they also carry the standards and methods of their tests, and a sample can belong to a different campaign than its location. DIGGS 2.6 describes the same kind of location with a `Locality` (`route`, `station`, `offset`, `offsetDirection`), which any sampling feature can have, boreholes included, so GDP locations can be mapped to either format. GDP is meant to work alongside AGS 4 and DIGGS rather than replace them.
+GDP builds mainly on AGS 4. From it, GDP takes the organisation of data into one table per kind of record, the link from records to their source documents (`FILE_FSET`), and linear referencing: `LOCA_CNGE`, `LOCA_OFFS` and `LOCA_ALID` become `station`, `offset` and `alignment`, with a fixed unit and a sign convention added. AGS 4 also groups locations by investigation phase (`LOCA_CLST`). GDP campaigns play a similar role, but they also carry the standards and methods of their tests, and a sample can belong to a different campaign than its location. DIGGS 2.6 describes the same kind of location with a `Locality` (`route`, `station`, `offset`, `offsetDirection`), which any sampling feature can have, boreholes included. GDP's signed offset converts to the DIGGS pair `offset` and `offsetDirection`, so GDP locations can be mapped to either format, although the structures are not identical. GDP is meant to work alongside AGS 4 and DIGGS rather than replace them.
 
 ## License
 
