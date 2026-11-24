@@ -1,8 +1,8 @@
 # GDP — Geotechnical Data Package
 
-GDP is an open file format for **factual geotechnical investigation data**: investigation points, described layering, groundwater, samples, laboratory index tests and CPT/CPTu. A package is a zip (`.gdp`) of plain CSV tables and small TOML files. It is readable without special tools and easy to produce from scripts or spreadsheets. A machine-readable schema lets software validate it, and helps both people and AI tools build it.
+GDP (Geotechnical Data Package) is a format for the factual data of a geotechnical investigation. People can read and write it by hand, with the tools they already use (a text editor or a spreadsheet), and software, AI assistants included, can validate it automatically and help generate it. Two established formats already cover this data. AGS 4 is widely used, but its syntax and its dependence on a data dictionary make it hard to write or check by hand. DIGGS is comprehensive, but it is written in XML/GML, which is verbose and impractical without dedicated software. GDP aims to be simpler than both: a package is a folder of plain CSV tables, distributed as a zip file and described by a small TOML manifest and one file per investigation campaign.
 
-GDP keeps the idea behind AGS 4, a common exchange format for geotechnical data, but replaces its syntax:
+Compared with AGS 4:
 
 | | AGS 4 | GDP |
 |---|---|---|
