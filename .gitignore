@@ -1,9 +1,9 @@
 *.sqlite
 __pycache__/
 .DS_Store
-docs/**
-CLAUDE.md
 .venv/
 .pytest_cache/
 .superpowers/
+docs/**
 HANDOFF.md
+CLAUDE.local.md
