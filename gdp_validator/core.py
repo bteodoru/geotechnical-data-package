@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from . import depths, documents, lab, refs, tables
+from . import cpt, depths, documents, lab, refs, standards, tables
 from .context import Context
 from .package import Package
 from .report import Collector, Report
@@ -20,4 +20,6 @@ def validate(path, draft: bool = False, lang: str | None = None, accept_newer: b
         refs.run(ctx)
         depths.run(ctx)
         lab.run(ctx)
+        cpt.run(ctx)
+        standards.run(ctx)
     return Report(Path(path).name, draft, ctx.out.issues)
