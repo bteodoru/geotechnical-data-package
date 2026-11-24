@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from . import documents
+from . import documents, tables
 from .context import Context
 from .package import Package
 from .report import Collector, Report
@@ -16,4 +16,5 @@ def validate(path, draft: bool = False, lang: str | None = None, accept_newer: b
     ctx = Context(pkg=pkg, out=Collector(draft, locale), accept_newer=accept_newer)
     if documents.run_manifest(ctx):
         documents.run_campaigns(ctx)
+        tables.run(ctx)
     return Report(Path(path).name, draft, ctx.out.issues)

@@ -37,8 +37,9 @@ class Collector:
         self.locale = locale
         self.issues: list[Issue] = []
 
-    def add(self, code: str, check: str, path: str, row: int | None = None, column: str = "",
+    def add(self, code: str, check: str, path: str, row: int | None = None, column: str = "", /,
             allowed=None, **params) -> None:
+        """Record an issue. Location arguments are positional so that templates may use {column}."""
         spec = check_spec(code, check)
         if spec.get("missing"):
             level = "missing" if self.draft else "error"

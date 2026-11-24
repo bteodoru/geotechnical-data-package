@@ -72,10 +72,10 @@ def _schema_errors(ctx: Context, path: str, doc: dict, kind: str) -> None:
             for prop in error.validator_value:
                 if prop not in present:
                     key = ".".join(parent + [prop])
-                    ctx.out.add("E01", "required_key", path, column=key, key=key)
+                    ctx.out.add("E01", "required_key", path, None, key, key=key)
         else:
             key = ".".join(parent)
-            ctx.out.add("E01", "schema_violation", path, column=key, key=key or "(root)", detail=error.message)
+            ctx.out.add("E01", "schema_violation", path, None, key, key=key or "(root)", detail=error.message)
 
 
 def _version_ok(version: str, accept_newer: bool) -> bool:
@@ -97,7 +97,7 @@ def run_manifest(ctx: Context) -> bool:
     ctx.manifest = doc
     version = doc.get("version")
     if isinstance(version, str) and re.fullmatch(r"\d+\.\d+", version) and not _version_ok(version, ctx.accept_newer):
-        ctx.out.add("E01", "version_unsupported", MANIFEST, column="version", version=version, expected=VERSION)
+        ctx.out.add("E01", "version_unsupported", MANIFEST, None, "version", version=version, expected=VERSION)
         return False
     _schema_errors(ctx, MANIFEST, doc, "manifest")
     return True
@@ -133,11 +133,11 @@ def _check_standards(ctx: Context, path: str, standards) -> None:
         return
     for key, value in standards.items():
         if key not in TESTS and key not in RESERVED and not key.startswith("x_"):
-            ctx.out.add("E10", "unknown_test", path, column=f"standards.{key}", key=key)
+            ctx.out.add("E10", "unknown_test", path, None, f"standards.{key}", key=key)
         elif isinstance(value, str) and value and not key.startswith("x_"):
             std = strip_year(value)
             if std != "unknown" and std not in STANDARDS_REGISTRY:
-                ctx.out.add("W05", "unknown_standard", path, column=f"standards.{key}", standard=value)
+                ctx.out.add("W05", "unknown_standard", path, None, f"standards.{key}", standard=value)
 
 
 def _check_methods(ctx: Context, path: str, methods) -> None:
@@ -148,13 +148,13 @@ def _check_methods(ctx: Context, path: str, methods) -> None:
         if key.startswith("x_"):
             continue
         if key not in TESTS:
-            ctx.out.add("E10", "unknown_test", path, column=column, key=key)
+            ctx.out.add("E10", "unknown_test", path, None, column, key=key)
             continue
         allowed = TESTS[key]["methods"]
         if not allowed:
-            ctx.out.add("E10", "unknown_method", path, column=column, method=value, test=key, allowed="none")
+            ctx.out.add("E10", "unknown_method", path, None, column, method=value, test=key, allowed="none")
         elif value not in allowed:
-            ctx.out.add("E10", "unknown_method", path, column=column, allowed=allowed, method=value, test=key)
+            ctx.out.add("E10", "unknown_method", path, None, column, allowed=allowed, method=value, test=key)
 
 
 def _check_fractions(ctx: Context, path: str, fractions) -> None:
@@ -163,9 +163,9 @@ def _check_fractions(ctx: Context, path: str, fractions) -> None:
     source = fractions["source"]
     if source == "custom":
         if "upper_mm" not in fractions:
-            ctx.out.add("E11", "custom_without_upper_mm", path, column="fractions.upper_mm")
+            ctx.out.add("E11", "custom_without_upper_mm", path, None, "fractions.upper_mm")
         return
     if strip_year(source) not in FRACTIONS_REGISTRY:
-        ctx.out.add("E11", "fractions_source_unknown", path, column="fractions.source", source=source)
+        ctx.out.add("E11", "fractions_source_unknown", path, None, "fractions.source", source=source)
     if "upper_mm" in fractions:
-        ctx.out.add("E11", "upper_mm_not_custom", path, column="fractions.upper_mm")
+        ctx.out.add("E11", "upper_mm_not_custom", path, None, "fractions.upper_mm")
