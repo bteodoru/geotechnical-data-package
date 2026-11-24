@@ -888,14 +888,18 @@
         {
           "name": "area_ratio",
           "type": "number",
-          "required_if": "data series has column u",
+          "required_if": {
+            "data_column": "u"
+          },
           "minimum": 0,
           "maximum": 1
         },
         {
           "name": "filter_position",
           "type": "code",
-          "required_if": "data series has column u",
+          "required_if": {
+            "data_column": "u"
+          },
           "vocabulary": "filter_position"
         },
         {
@@ -964,72 +968,233 @@
     {
       "code": "E01",
       "level": "error",
-      "text": "manifest.toml exists and is valid (format, version, project.uuid, project.id, project.name, project.crs)."
+      "text": "manifest.toml and the campaign files are valid TOML and match their schemas (format, version, project.uuid, project.id, project.name, project.crs).",
+      "checks": {
+        "manifest_missing": {
+          "message": "manifest.toml not found",
+          "missing": true
+        },
+        "toml_syntax": {
+          "message": "TOML syntax error: {detail}"
+        },
+        "schema_violation": {
+          "message": "{key}: {detail}"
+        },
+        "required_key": {
+          "message": "required key {key} is missing",
+          "missing": true
+        },
+        "version_unsupported": {
+          "message": "version {version} is not supported (expected {expected})"
+        }
+      }
     },
     {
       "code": "E02",
       "level": "error",
-      "text": "points has at least one row; campaigns/ has at least one file."
+      "text": "points has at least one row; campaigns/ has at least one file.",
+      "checks": {
+        "no_points": {
+          "message": "points.csv is missing or has no rows",
+          "missing": true
+        },
+        "no_campaigns": {
+          "message": "campaigns/ has no campaign file",
+          "missing": true
+        }
+      }
     },
     {
       "code": "E03",
       "level": "error",
-      "text": "Required columns are present, with exact name and unit."
+      "text": "Required columns are present, with exact name and unit.",
+      "checks": {
+        "missing_column": {
+          "message": "required column {column} is missing",
+          "missing": true
+        },
+        "wrong_unit": {
+          "message": "{name} has unit [{found}], expected [{expected}]"
+        },
+        "duplicate_column": {
+          "message": "column {name} appears more than once"
+        },
+        "bad_header": {
+          "message": "header cell {cell} is not name or name[unit]"
+        },
+        "unreadable": {
+          "message": "file is not UTF-8 CSV: {detail}"
+        }
+      }
     },
     {
       "code": "E04",
       "level": "error",
-      "text": "Values parse as the column type; required fields are not empty."
+      "text": "Values parse as the column type; required fields are not empty.",
+      "checks": {
+        "bad_value": {
+          "message": "{value} is not a valid {type}"
+        },
+        "required_empty": {
+          "message": "{column} is empty",
+          "missing": true
+        },
+        "out_of_bounds": {
+          "message": "{column} ({value}) outside [{min}, {max}]"
+        },
+        "row_length": {
+          "message": "row has {found} cells, header has {expected}"
+        }
+      }
     },
     {
       "code": "E05",
       "level": "error",
-      "text": "Primary keys are unique."
+      "text": "Primary keys are unique.",
+      "checks": {
+        "duplicate_key": {
+          "message": "duplicate key {key} (first at row {first_row})"
+        }
+      }
     },
     {
       "code": "E06",
       "level": "error",
-      "text": "References resolve (including layers.unit and campaign -> file). With several campaigns, every point names one."
+      "text": "References resolve (including layers.unit and campaign -> file). With several campaigns, every point names one.",
+      "checks": {
+        "unresolved": {
+          "message": "{column} {value} not found in {table}"
+        },
+        "campaign_unresolved": {
+          "message": "campaign {value} has no file campaigns/{value}.toml"
+        },
+        "campaign_required": {
+          "message": "point {point_id} names no campaign; the package has {count} campaigns",
+          "missing": true
+        }
+      }
     },
     {
       "code": "E07",
       "level": "error",
-      "text": "depth_top < depth_base; depths within [0, final_depth]."
+      "text": "depth_top < depth_base; depths within [0, final_depth].",
+      "checks": {
+        "top_not_above_base": {
+          "message": "depth_base ({base}) <= depth_top ({top})"
+        },
+        "beyond_final_depth": {
+          "message": "{field} ({value}) > final_depth ({final_depth}) of point {point_id}"
+        }
+      }
     },
     {
       "code": "E08",
       "level": "error",
-      "text": "Layers of a point do not overlap."
+      "text": "Layers of a point do not overlap.",
+      "checks": {
+        "overlap": {
+          "message": "layer [{top}, {base}) overlaps layer [{other_top}, {other_base}) at row {other_row}"
+        }
+      }
     },
     {
       "code": "E09",
       "level": "error",
-      "text": "Every test_id has a data file and vice versa; depth strictly increasing."
+      "text": "Every test_id has a data file and vice versa; depth strictly increasing.",
+      "checks": {
+        "data_file_missing": {
+          "message": "test {test_id} has no file cpt/data/{test_id}.csv"
+        },
+        "orphan_data_file": {
+          "message": "no row in cpt/tests.csv for test {test_id}"
+        },
+        "not_increasing": {
+          "message": "depth ({depth}) is not greater than the previous depth ({previous})"
+        }
+      }
     },
     {
       "code": "E10",
       "level": "error",
-      "text": "Codes come from the vocabularies; wL >= wP; campaign test keys and methods from the vocabulary or prefixed x_."
+      "text": "Codes come from the vocabularies; wL >= wP; campaign test keys and methods from the vocabulary or prefixed x_.",
+      "checks": {
+        "unknown_code": {
+          "message": "{value} is not in {vocabulary} (allowed: {allowed})"
+        },
+        "wL_below_wP": {
+          "message": "wL ({wL}) < wP ({wP})"
+        },
+        "unknown_test": {
+          "message": "unknown test key {key}"
+        },
+        "unknown_method": {
+          "message": "method {method} is not valid for {test} (allowed: {allowed})"
+        }
+      }
     },
     {
       "code": "E11",
       "level": "error",
-      "text": "Every test with data has its standard declared in the row's campaign; fractions.source is known, or custom with upper_mm."
+      "text": "Every test with data has its standard declared in the row's campaign; fractions.source is known, or custom with upper_mm.",
+      "checks": {
+        "standard_missing": {
+          "message": "{test} has data in campaign {campaign} but no standard is declared",
+          "missing": true
+        },
+        "fractions_missing": {
+          "message": "campaign {campaign} has grain-size data but no [fractions]",
+          "missing": true
+        },
+        "fractions_source_unknown": {
+          "message": "fractions.source {source} is neither a known standard nor custom"
+        },
+        "custom_without_upper_mm": {
+          "message": "fractions.source = custom requires upper_mm",
+          "missing": true
+        },
+        "upper_mm_not_custom": {
+          "message": "upper_mm is allowed only with source = custom"
+        }
+      }
     },
     {
       "code": "E12",
       "level": "error",
-      "text": "lab_index has either rho/rho_s or gamma/gamma_s."
+      "text": "lab_index has either rho/rho_s or gamma/gamma_s.",
+      "checks": {
+        "both_groups": {
+          "message": "lab_index has both {first} and {second}"
+        }
+      }
     },
     {
       "code": "W01",
       "level": "warning",
-      "text": "Gaps in the layering, or layering does not cover [0, final_depth]."
+      "text": "Gaps in the layering, or layering does not cover [0, final_depth].",
+      "checks": {
+        "gap": {
+          "message": "gap between {base} and {next_top} in point {point_id}"
+        },
+        "not_from_surface": {
+          "message": "layering of point {point_id} starts at {top}, not 0"
+        },
+        "not_to_final_depth": {
+          "message": "layering of point {point_id} ends at {base}; final_depth is {final_depth}"
+        }
+      }
     },
     {
       "code": "W02",
       "level": "warning",
-      "text": "Unknown column without x_ prefix."
+      "text": "Unknown column without x_ prefix.",
+      "checks": {
+        "unknown_column": {
+          "message": "unknown column {column} (extensions need the x_ prefix)"
+        },
+        "unknown_file": {
+          "message": "unknown file {file}"
+        }
+      }
     },
     {
       "code": "W03",
@@ -1052,27 +1217,52 @@
           11.77,
           25.51
         ]
+      },
+      "checks": {
+        "implausible": {
+          "message": "{column} = {value} outside the plausible range [{min}, {max}]"
+        }
       }
     },
     {
       "code": "W04",
       "level": "warning",
-      "text": "Grain-size fractions sum differs from 100 % by more than 1 %."
+      "text": "Grain-size fractions sum differs from 100 % by more than 1 %.",
+      "checks": {
+        "fractions_sum": {
+          "message": "grain-size fractions sum to {sum} %"
+        }
+      }
     },
     {
       "code": "W05",
       "level": "warning",
-      "text": "Standard not in the registry."
+      "text": "Standard not in the registry.",
+      "checks": {
+        "unknown_standard": {
+          "message": "standard {standard} is not in the registry"
+        }
+      }
     },
     {
       "code": "W06",
       "level": "warning",
-      "text": "Sample whose reference depth falls in no layer."
+      "text": "Sample whose reference depth falls in no layer.",
+      "checks": {
+        "sample_outside_layers": {
+          "message": "reference depth {depth} of sample {sample_id} falls in no layer of point {point_id}"
+        }
+      }
     },
     {
       "code": "W07",
       "level": "warning",
-      "text": "units.csv exists but a layer has no unit."
+      "text": "units.csv exists but a layer has no unit.",
+      "checks": {
+        "layer_without_unit": {
+          "message": "layer has no unit although units.csv exists"
+        }
+      }
     }
   ]
 }
