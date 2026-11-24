@@ -15,5 +15,5 @@ def validate(path, draft: bool = False, lang: str | None = None, accept_newer: b
     locale = load_locale(lang) if lang else None
     ctx = Context(pkg=pkg, out=Collector(draft, locale), accept_newer=accept_newer)
     if documents.run_manifest(ctx):
-        pass
+        documents.run_campaigns(ctx)
     return Report(Path(path).name, draft, ctx.out.issues)
