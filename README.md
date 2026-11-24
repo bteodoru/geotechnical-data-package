@@ -10,9 +10,9 @@ Compared with AGS 4 and DIGGS:
 | Names | 4-letter codes (`GEOL_TOP`) | namespaced XML elements (`totalMeasuredDepth`) | readable names with the unit in the header (`depth_top[m]`) |
 | Keys | composite keys | `gml:id` on each object, referenced with `xlink:href="#id"` | one identifier per entity, unique in the project |
 | Units | UNIT row in each group | per value (`uom="m"`) | fixed per field, written once in the header |
-| Context | repeated per row | procedure embedded in each test | per campaign: standards, methods and grain-size limits declared once |
+| Context | mostly per row or per group | procedure embedded in each test | per campaign: standards, methods and grain-size limits declared once |
 
-**Status: v0.1, draft.** Soils only; rock mechanics is out of scope for now. The specification is currently written in Romanian.
+**Status: v0.1, draft.** Soils only; rock mechanics is out of scope for now. The schema is normative and in English; the specification text is currently written in Romanian.
 
 ## Package structure
 
@@ -33,11 +33,13 @@ project.gdp  (zip)
 
 The main rules:
 
+- **One standard and one method per test, per campaign.** Each campaign file declares the standard and the method of every test it contains. A different standard or method means a different campaign. A sample can override the campaign of its point, for example a verification duplicate tested elsewhere.
+- **A package is a complete snapshot of one project.** The project has a mandatory `project.uuid`, generated once and kept across package versions. Importing a package replaces everything stored for that project, so many packages can share one database without key collisions.
 - **Fixed SI units.** Each unit is written in the header (`depth[m]`, `qc[MPa]`), spelled as in UCUM, and there is no unit option.
 - **Only measured quantities are stored.** Derived values such as IP, IC, qt or Ic are recomputed, so they cannot be inconsistent.
 - **Extensions.** Custom columns take the `x_` prefix and are ignored by readers that do not know them.
 - **Source documents.** Any point, layer, water observation, sample, lab row or CPT test can name its source in `attachments/` (`source_file`, optionally `#page=N`), so every value can be checked against the page it came from.
-- **Linear works.** Points can also carry a chainage and an offset from an alignment (`station[m]`, `offset[m]`, `alignment`).
+- **Linear works.** Points can also carry a chainage and an offset from an alignment (`station[m]`, `offset[m]`, `alignment`). The alignment is only named, not described in the package, so the chainage is informative and the coordinates remain authoritative.
 
 A few rows of `points.csv`:
 
@@ -118,6 +120,10 @@ Importing into SQLite (packages with errors are refused):
 ```
 
 Tests: `.venv/bin/pip install "pytest>=8" && .venv/bin/python -m pytest`.
+
+## Relation to AGS and DIGGS
+
+GDP builds on both formats. From AGS 4 it takes the organisation of data into one table per kind of record, and the link from records to their source documents. From DIGGS it takes linear referencing (station and offset) for linear works. GDP is meant to work alongside them, not to replace them.
 
 ## License
 

@@ -215,7 +215,7 @@ Un rând per punct: foraj, sondaj CPT, penetrare dinamică, groapă sau puț.
 | `final_depth[m]` | number | da | Adâncimea finală atinsă. |
 | `station[m]` | number | nu | Poziția kilometrică pe axa unei lucrări liniare (dig, drum, canal), în metri: km 12+345,60 se scrie `12345.60`. Obligatorie dacă există `offset`. |
 | `offset[m]` | number | nu | Distanța față de ax, pozitivă la dreapta privind în sensul în care crește poziția kilometrică, negativă la stânga. |
-| `alignment` | text | nu | Numele axei la care se raportează `station`, când proiectul are mai multe (`dig`, `canal`). |
+| `alignment` | text | nu | Numele axei la care se raportează `station`, când proiectul are mai multe (`dig`, `canal`). Axa nu e descrisă în pachet, deci poziția kilometrică e informativă, iar coordonatele rămân de referință. |
 | `date_start` | date | nu | Data începerii. |
 | `date_end` | date | nu | Data terminării. |
 | `method` | text | nu | Metodă și echipament, liber („rotativ uscat, Ø 146 mm”). |
