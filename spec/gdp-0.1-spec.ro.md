@@ -497,7 +497,7 @@ Nucleul are un corespondent AGS 4 pentru fiecare tabel. Deci un convertor bidire
 
 | GDP | AGS 4 | Note |
 | --- | --- | --- |
-| `manifest`, `campaigns` | PROJ, TRAN, UNIT, TYPE, ABBR | Metadatele și dicționarele AGS se reduc la câteva chei. AGS 4 nu are un echivalent direct pentru campanii. |
+| `manifest`, `campaigns` | PROJ, TRAN, UNIT, TYPE, ABBR | Metadatele și dicționarele AGS se reduc la câteva chei. Cel mai apropiat echivalent al campaniilor e `LOCA_CLST`, o grupare a punctelor pe faze de investigare, fără standarde și metode: `points.campaign` ↔ `LOCA_CLST`. |
 | `points` | LOCA | `easting`/`northing` → LOCA\_NATE/LOCA\_NATN, `elevation` → LOCA\_GL, `final_depth` → LOCA\_FDEP. `station` → LOCA\_CNGE (text în AGS, de forma `500+123.23`, fără unitate declarată; convertorul îl transformă în metri), `offset` → LOCA\_OFFS (AGS nu fixează unitatea și convenția de semn), `alignment` → LOCA\_ALID. Verificate în dicționarele standard AGS 4.0.4, 4.1 și 4.1.1. |
 | `layers` | GEOL | `depth_top`/`depth_base` → GEOL\_TOP/GEOL\_BASE, `description` → GEOL\_DESC, `unit` → GEOL\_GEOL (cel mai apropiat echivalent). |
 | `units` | — | AGS 4 nu are tabel de unități. Unitățile corespund elementelor modelului de teren din AGSi. |

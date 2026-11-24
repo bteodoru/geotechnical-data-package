@@ -123,7 +123,7 @@ Tests: `.venv/bin/pip install "pytest>=8" && .venv/bin/python -m pytest`.
 
 ## Relation to AGS and DIGGS
 
-GDP builds mainly on AGS 4, from which it takes the organisation of data into one table per kind of record, the link from records to their source documents, and linear referencing (AGS 4 `LOCA_CNGE`, `LOCA_OFFS`, `LOCA_ALID` become `station`, `offset`, `alignment`; GDP adds a fixed unit and a sign convention). DIGGS 2.6 describes the same kind of location with a station name, an offset and an offset direction along a named route (`LocalityType`). GDP is meant to work alongside both formats, not to replace them.
+GDP builds mainly on AGS 4. From it, GDP takes the organisation of data into one table per kind of record, the link from records to their source documents (`FILE_FSET`), and linear referencing: `LOCA_CNGE`, `LOCA_OFFS` and `LOCA_ALID` become `station`, `offset` and `alignment`, with a fixed unit and a sign convention added. AGS 4 also groups locations by investigation phase (`LOCA_CLST`). GDP campaigns play a similar role, but they also carry the standards and methods of their tests, and a sample can belong to a different campaign than its location. DIGGS 2.6 describes the same kind of location with a `Locality` (`route`, `station`, `offset`, `offsetDirection`), which any sampling feature can have, boreholes included, so GDP locations can be mapped to either format. GDP is meant to work alongside AGS 4 and DIGGS rather than replace them.
 
 ## License
 
