@@ -2,14 +2,15 @@
 
 GDP (Geotechnical Data Package) is a format for the factual data of a geotechnical investigation. People can read and write it by hand, with the tools they already use (a text editor or a spreadsheet), and software, AI assistants included, can validate it automatically and help generate it. Two established formats already cover this data. AGS 4 is widely used, but its syntax and its dependence on a data dictionary make it hard to write or check by hand. DIGGS is comprehensive, but it is written in XML/GML, which is verbose and impractical without dedicated software. GDP aims to be simpler than both: a package is a folder of plain CSV tables, distributed as a zip file and described by a small TOML manifest and one file per investigation campaign.
 
-Compared with AGS 4:
+Compared with AGS 4 and DIGGS:
 
-| | AGS 4 | GDP |
-|---|---|---|
-| Layout | one file, many groups, GROUP/HEADING/UNIT/TYPE rows | one CSV per table |
-| Names | 4-letter codes (`GEOL_TOP`) | readable names with the unit in the header (`depth_top[m]`) |
-| Keys | composite keys | one identifier per entity, unique in the project |
-| Context | repeated per row | per campaign: standards, methods and grain-size limits declared once |
+| | AGS 4 | DIGGS 2.6 | GDP |
+|---|---|---|---|
+| Layout | one file, many groups, GROUP/HEADING/UNIT/TYPE rows | one XML/GML document, nested elements (`Test > outcome > TestResult > results > ResultSet`) | one CSV per table |
+| Names | 4-letter codes (`GEOL_TOP`) | namespaced XML elements (`totalMeasuredDepth`) | readable names with the unit in the header (`depth_top[m]`) |
+| Keys | composite keys | `gml:id` on each object, referenced with `xlink:href="#id"` | one identifier per entity, unique in the project |
+| Units | UNIT row in each group | per value (`uom="m"`) | fixed per field, written once in the header |
+| Context | repeated per row | procedure embedded in each test | per campaign: standards, methods and grain-size limits declared once |
 
 **Status: v0.1, draft.** Soils only; rock mechanics is out of scope for now. The specification is currently written in Romanian.
 
