@@ -46,7 +46,18 @@
     "code": {
       "base": "string",
       "note": "value from a vocabulary (field 'vocabulary')"
+    },
+    "file_ref": {
+      "base": "string",
+      "pattern": "^[^#]+(#page=[1-9][0-9]*)?$",
+      "note": "Path relative to attachments/, optionally followed by #page=N (1-based PDF page)."
     }
+  },
+  "unit_system": {
+    "name": "UCUM",
+    "variant": "case-sensitive",
+    "reference": "https://ucum.org/ucum",
+    "note": "Units are fixed per field; only their spelling follows UCUM (c/s). Header: name[unit]."
   },
   "csv": {
     "encoding": "utf-8",
@@ -495,6 +506,29 @@
           "minimum": 0
         },
         {
+          "name": "station",
+          "type": "number",
+          "unit": "m",
+          "required": false,
+          "required_if": {
+            "field": "offset"
+          },
+          "description": "Chainage along the alignment, in metres (km 12+345.60 -> 12345.60)."
+        },
+        {
+          "name": "offset",
+          "type": "number",
+          "unit": "m",
+          "required": false,
+          "description": "Distance from the alignment: positive to the right, looking towards increasing station."
+        },
+        {
+          "name": "alignment",
+          "type": "text",
+          "required": false,
+          "description": "Name of the alignment the station refers to."
+        },
+        {
           "name": "date_start",
           "type": "date",
           "required": false
@@ -508,6 +542,13 @@
           "name": "method",
           "type": "text",
           "required": false
+        },
+        {
+          "name": "source_file",
+          "type": "file_ref",
+          "required": false,
+          "references": "attachment",
+          "description": "Source document in attachments/, optionally with #page=N."
         },
         {
           "name": "remarks",
@@ -614,6 +655,13 @@
           "name": "unit",
           "type": "id",
           "required": false
+        },
+        {
+          "name": "source_file",
+          "type": "file_ref",
+          "required": false,
+          "references": "attachment",
+          "description": "Source document in attachments/, optionally with #page=N."
         }
       ]
     },
@@ -656,6 +704,13 @@
           "name": "datetime",
           "type": "datetime",
           "required": false
+        },
+        {
+          "name": "source_file",
+          "type": "file_ref",
+          "required": false,
+          "references": "attachment",
+          "description": "Source document in attachments/, optionally with #page=N."
         },
         {
           "name": "remarks",
@@ -722,6 +777,13 @@
           "type": "code",
           "required": true,
           "vocabulary": "sample_kind"
+        },
+        {
+          "name": "source_file",
+          "type": "file_ref",
+          "required": false,
+          "references": "attachment",
+          "description": "Source document in attachments/, optionally with #page=N."
         },
         {
           "name": "remarks",
@@ -838,6 +900,13 @@
           "test": "grain_size"
         },
         {
+          "name": "source_file",
+          "type": "file_ref",
+          "required": false,
+          "references": "attachment",
+          "description": "Source document in attachments/, optionally with #page=N."
+        },
+        {
           "name": "remarks",
           "type": "text"
         }
@@ -910,6 +979,13 @@
         {
           "name": "equipment",
           "type": "text"
+        },
+        {
+          "name": "source_file",
+          "type": "file_ref",
+          "required": false,
+          "references": "attachment",
+          "description": "Source document in attachments/, optionally with #page=N."
         },
         {
           "name": "remarks",
@@ -1060,7 +1136,7 @@
     {
       "code": "E06",
       "level": "error",
-      "text": "References resolve (including layers.unit and campaign -> file). With several campaigns, every point names one.",
+      "text": "References resolve (including layers.unit and campaign -> file). With several campaigns, every point names one; source_file points to a file in attachments/.",
       "checks": {
         "unresolved": {
           "message": "{column} {value} not found in {table}"
@@ -1071,6 +1147,9 @@
         "campaign_required": {
           "message": "point {point_id} names no campaign; the package has {count} campaigns",
           "missing": true
+        },
+        "source_unresolved": {
+          "message": "source file {value} not found in attachments/"
         }
       }
     },

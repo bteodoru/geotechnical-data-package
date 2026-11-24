@@ -11,9 +11,13 @@
     "tables.points.fields.northing": { "label": "Coordonată nord", "synonyms": ["X Stereo 70", "Nord"] },
     "tables.points.fields.elevation": { "label": "Cota terenului", "synonyms": ["cotă", "CTN", "cota terenului natural"] },
     "tables.points.fields.final_depth": { "label": "Adâncime finală", "synonyms": ["adâncimea forajului", "H foraj"] },
+    "tables.points.fields.station": { "label": "Poziție kilometrică", "synonyms": ["kilometraj", "pichet", "km"] },
+    "tables.points.fields.offset": { "label": "Distanță față de ax", "synonyms": ["offset", "depărtare de ax"] },
+    "tables.points.fields.alignment": { "label": "Ax", "synonyms": ["aliniament", "traseu"] },
     "tables.points.fields.date_start": { "label": "Data începerii" },
     "tables.points.fields.date_end": { "label": "Data terminării" },
     "tables.points.fields.method": { "label": "Metodă de execuție", "synonyms": ["sistem de foraj", "utilaj"] },
+    "tables.points.fields.source_file": { "label": "Document sursă", "synonyms": ["sursă", "buletin", "fișă originală"] },
     "tables.points.fields.remarks": { "label": "Observații" },
 
     "tables.units": { "label": "Unități geotehnice", "synonyms": ["orizonturi", "unități litologice", "straturi (grupate)"] },
@@ -29,12 +33,14 @@
     "tables.layers.fields.description": { "label": "Descriere strat", "synonyms": ["descriere litologică", "natura terenului"] },
     "tables.layers.fields.soil_symbol": { "label": "Simbol SR EN ISO 14688-2" },
     "tables.layers.fields.unit": { "label": "Unitate geotehnică", "synonyms": ["orizont"] },
+    "tables.layers.fields.source_file": { "label": "Document sursă", "synonyms": ["sursă", "buletin", "fișă originală"] },
 
     "tables.water": { "label": "Apă subterană" },
     "tables.water.fields.point_id": { "label": "Punct" },
     "tables.water.fields.kind": { "label": "Tip observație" },
     "tables.water.fields.depth": { "label": "Adâncimea nivelului apei", "synonyms": ["NH", "nivel hidrostatic", "nivelul apei"] },
     "tables.water.fields.datetime": { "label": "Data și ora" },
+    "tables.water.fields.source_file": { "label": "Document sursă", "synonyms": ["sursă", "buletin", "fișă originală"] },
     "tables.water.fields.remarks": { "label": "Observații" },
 
     "tables.samples": { "label": "Probe" },
@@ -44,6 +50,7 @@
     "tables.samples.fields.depth_top": { "label": "Adâncime de prelevare", "synonyms": ["adâncime probă", "de la"] },
     "tables.samples.fields.depth_base": { "label": "Adâncime până la" },
     "tables.samples.fields.kind": { "label": "Tip probă" },
+    "tables.samples.fields.source_file": { "label": "Document sursă", "synonyms": ["sursă", "buletin", "fișă originală"] },
     "tables.samples.fields.remarks": { "label": "Observații" },
 
     "tables.lab_index": { "label": "Indici fizici" },
@@ -59,6 +66,7 @@
     "tables.lab_index.fields.silt": { "label": "Praf", "synonyms": ["fracțiune prăfoasă", "P"] },
     "tables.lab_index.fields.sand": { "label": "Nisip", "synonyms": ["fracțiune nisipoasă", "N"] },
     "tables.lab_index.fields.gravel": { "label": "Pietriș", "synonyms": ["fracțiune de pietriș"] },
+    "tables.lab_index.fields.source_file": { "label": "Document sursă", "synonyms": ["sursă", "buletin", "fișă originală"] },
     "tables.lab_index.fields.remarks": { "label": "Observații" },
 
     "tables.cpt_tests": { "label": "Sondaje de penetrare statică" },
@@ -70,6 +78,7 @@
     "tables.cpt_tests.fields.filter_position": { "label": "Poziția filtrului" },
     "tables.cpt_tests.fields.predrill_depth": { "label": "Adâncime pre-forată" },
     "tables.cpt_tests.fields.equipment": { "label": "Echipament" },
+    "tables.cpt_tests.fields.source_file": { "label": "Document sursă", "synonyms": ["sursă", "buletin", "fișă originală"] },
     "tables.cpt_tests.fields.remarks": { "label": "Observații" },
 
     "tables.cpt_data": { "label": "Serie CPT" },
@@ -141,6 +150,7 @@
     "rules.E06.checks.unresolved": { "message": "{column} {value} nu există în {table}" },
     "rules.E06.checks.campaign_unresolved": { "message": "campania {value} nu are fișierul campaigns/{value}.toml" },
     "rules.E06.checks.campaign_required": { "message": "punctul {point_id} nu indică o campanie, iar pachetul are {count} campanii" },
+    "rules.E06.checks.source_unresolved": { "message": "documentul sursă {value} nu există în attachments/" },
     "rules.E07": { "message": "Interval de adâncime invalid sau în afara [0, final_depth]." },
     "rules.E07.checks.top_not_above_base": { "message": "depth_base ({base}) ≤ depth_top ({top})" },
     "rules.E07.checks.beyond_final_depth": { "message": "{field} ({value}) > final_depth ({final_depth}) al punctului {point_id}" },

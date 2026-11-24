@@ -8,7 +8,7 @@ Nucleul v0.1 acoperă datele factuale ale unei investigații: puncte de investig
 
 - **CSV canonic, Excel compatibil.** Specificația se scrie pentru forma canonică, un zip cu CSV-uri. Pentru că Excel e omniprezent în practică, există și o reprezentare xlsx convertibilă fără pierderi, dar ea nu dictează nicio decizie de format.
 - **Un tabel = un fișier = un sheet.** Fără rânduri GROUP/UNIT/TYPE și fără ghilimele inutile.
-- **Nume citibile, cu unitatea în antet:** `depth_top[m]`, nu `GEOL_TOP`.
+- **Nume citibile, cu unitatea în antet:** `depth_top[m]`, nu `GEOL_TOP`. Simbolurile unităților se scriu după UCUM, varianta sensibilă la majuscule (`Mg/m3`, `kN/m3`, `cm2`, `deg`).
 - **Chei simple.** Fiecare entitate are un singur identificator, unic în proiect. Nu există chei compuse.
 - **Se stochează doar mărimi măsurate.** Mărimile derivate (IP, IC, qt, Rf, Bq, Ic) se recalculează, deci nu pot fi inconsecvente.
 - **Nucleu mic + profile versionate separat** (`cpt`, `lab_index`). Pachetul declară ce profile folosește.
@@ -36,7 +36,7 @@ proiect.gdp
 │   └── data/
 │       ├── CPT1.csv       seria densă a testului CPT1
 │       └── CPT2.csv
-└── attachments/           opțional: PDF, fotografii, fișe originale
+└── attachments/           opțional: PDF, fotografii, fișe originale, indicate prin source_file
 ```
 
 Relațiile dintre fișiere trec prin trei chei:
@@ -196,7 +196,7 @@ TOML a fost ales în locul YAML pentru că nu are capcane de indentare și nu tr
 
 ## 5. Tabelele nucleului
 
-Nucleul are cinci tabele, cu 33 de coloane în total, dintre care 18 sunt obligatorii. Toate se leagă de `points` prin `point_id`.
+Nucleul are cinci tabele, cu 40 de coloane în total, dintre care 18 sunt obligatorii. Toate se leagă de `points` prin `point_id`.
 
 ### 5.1 `points.csv`: puncte de investigare
 
@@ -211,9 +211,13 @@ Un rând per punct: foraj, sondaj CPT, penetrare dinamică, groapă sau puț.
 | `northing[m]` | number | da | Coordonată nord în CRS-ul din manifest. |
 | `elevation[m]` | number | recomandat | Cota terenului în punct. |
 | `final_depth[m]` | number | da | Adâncimea finală atinsă. |
+| `station[m]` | number | nu | Poziția kilometrică pe axa unei lucrări liniare (dig, drum, canal), în metri: km 12+345,60 se scrie `12345.60`. Obligatorie dacă există `offset`. |
+| `offset[m]` | number | nu | Distanța față de ax, pozitivă la dreapta privind în sensul în care crește poziția kilometrică, negativă la stânga. |
+| `alignment` | text | nu | Numele axei la care se raportează `station`, când proiectul are mai multe (`dig`, `canal`). |
 | `date_start` | date | nu | Data începerii. |
 | `date_end` | date | nu | Data terminării. |
 | `method` | text | nu | Metodă și echipament, liber („rotativ uscat, Ø 146 mm”). |
+| `source_file` | file_ref | nu | Documentul sursă din `attachments/` (5.6). |
 | `remarks` | text | nu | Observații. |
 
 ### 5.2 `layers.csv`: stratificație
@@ -228,6 +232,7 @@ Un rând per strat descris într-un punct. Straturile unui punct nu se suprapun.
 | `description` | text | da | Descrierea completă, așa cum apare în fișa de foraj. |
 | `soil_symbol` | code | nu | Simbol SR EN ISO 14688-2 (`clSi`, `saGr`, `Mg`). |
 | `unit` | id | nu | Unitatea geotehnică din care face parte stratul, din `units`. |
+| `source_file` | file_ref | nu | Documentul sursă din `attachments/` (5.6). |
 
 ### 5.3 `water.csv`: apă subterană
 
@@ -239,6 +244,7 @@ Un rând per observație. Așa, aceeași structură acoperă și nivelul întâl
 | `kind` | code | da | `struck` (întâlnit), `stable` (stabilizat), `reading` (citire de monitorizare). |
 | `depth[m]` | number | da | Adâncimea nivelului apei. |
 | `datetime` | datetime | nu | Momentul observației. |
+| `source_file` | file_ref | nu | Documentul sursă din `attachments/` (5.6). |
 | `remarks` | text | nu | Observații („aparție lentă, 20 min”). |
 
 ### 5.4 `samples.csv`: probe
@@ -253,6 +259,7 @@ Un rând per probă. `sample_id` e unic în tot proiectul, nu doar în foraj. Ac
 | `depth_top[m]` | number | da | Adâncimea de prelevare, sau partea superioară a intervalului. |
 | `depth_base[m]` | number | nu | Baza intervalului. Goală = probă punctuală. |
 | `kind` | code | da | `undisturbed`, `disturbed`, `core`, `water`. |
+| `source_file` | file_ref | nu | Documentul sursă din `attachments/` (5.6). |
 | `remarks` | text | nu | Observații. |
 
 ### 5.5 `units.csv`: unități geotehnice
@@ -276,6 +283,10 @@ Unitatea se deduce, nu se scrie la probe sau în seriile CPT:
 
 Pentru seriile CPT, fiecare adâncime cade într-un strat al punctului CPT. Stratificația unui punct CPT este cea interpretată din sondaj și se trece în `layers` ca pentru orice alt punct. Excluderea unei probe din calculul valorilor caracteristice e o decizie de proiectare și aparține profilului de interpretare, nu tabelului de probe.
 
+### 5.6 Documente sursă: `source_file`
+
+Tabelele `points`, `layers`, `water`, `samples`, `lab_index` și `cpt_tests` au coloana opțională `source_file`, care indică documentul din care provine rândul: fișa de foraj, buletinul de laborator, fișierul GEF original. Valoarea e calea relativă față de `attachments/` (`buletin_lab_2026.pdf`, `fise/F1.pdf`). Pentru un PDF se poate indica și pagina, după `#page=` (`buletin_lab_2026.pdf#page=3`, cu prima pagină 1). Fișierul trebuie să existe în pachet (E06). Astfel, fiecare valoare se poate verifica pe documentul din care a fost preluată, inclusiv când a fost extrasă automat.
+
 ## 6. Profilul `cpt` (v0.1)
 
 Profilul separă metadatele testului de seria densă. Metadatele stau într-un tabel mic; fiecare serie are un fișier propriu, fără cheie repetată pe rânduri. Un CPTu de 30 m înregistrat la 2 cm are \~1 500 de rânduri, adică \~50 KB în CSV și mai puțin de 20 KB în zip.
@@ -292,6 +303,7 @@ Profilul separă metadatele testului de seria densă. Metadatele stau într-un t
 | `filter_position` | code | da pentru CPTu | `u1`, `u2`, `u3`. |
 | `predrill_depth[m]` | number | nu | Adâncimea pre-forată, fără date. |
 | `equipment` | text | nu | Penetrometru și con („Geomil 200 kN, con S15CFIIP”). |
+| `source_file` | file_ref | nu | Documentul sursă din `attachments/`, de exemplu fișierul GEF original (5.6). |
 | `remarks` | text | nu | Observații (refuz, abatere de la verticală). |
 
 ### 6.2 `cpt/data/<test_id>.csv`
@@ -328,6 +340,7 @@ Un rând per probă, cu o coloană pentru fiecare mărime măsurată. E forma î
 | `silt[%]` | number | Între limitele `clay` și `silt`. |
 | `sand[%]` | number | Între limitele `silt` și `sand`. |
 | `gravel[%]` | number | Între limitele `sand` și `gravel`. |
+| `source_file` | file_ref | Buletinul de laborator din `attachments/` (5.6). |
 | `remarks` | text | Observații. |
 
 Antetul decide între densitate și greutate volumică. Un fișier `lab_index` conține fie perechea `rho`/`rho_s`, fie perechea `gamma`/`gamma_s`, niciodată amândouă (E12). Pentru conversia între ele, specificația fixează g = 9,81 m/s², astfel încât toate implementările să dea același rezultat. Standardul și metoda nu apar în tabel: ele țin de campania probei (secțiunea 4.2).
@@ -372,7 +385,7 @@ Validarea are 19 reguli: 12 erori, care fac pachetul invalid, și 7 avertismente
 | E03 | eroare | Fiecare tabel prezent are toate coloanele obligatorii, cu nume și unitate exacte. |
 | E04 | eroare | Valorile se pot citi în tipul coloanei, iar câmpurile obligatorii nu sunt goale. |
 | E05 | eroare | `point_id`, `unit_id`, `sample_id` și `test_id` sunt unice în tabelele lor. |
-| E06 | eroare | Toate referințele se rezolvă: fiecare `point_id` din `layers` există în `points`, fiecare `layers.unit` există în `units`, fiecare `campaign` din `points` și `samples` are fișierul `campaigns/<campaign>.toml` ș.a.m.d. Cu mai multe campanii, fiecare punct indică una. |
+| E06 | eroare | Toate referințele se rezolvă: fiecare `point_id` din `layers` există în `points`, fiecare `layers.unit` există în `units`, fiecare `campaign` din `points` și `samples` are fișierul `campaigns/<campaign>.toml` ș.a.m.d. Cu mai multe campanii, fiecare punct indică una. Fiecare `source_file` indică un fișier existent în `attachments/`. |
 | E07 | eroare | `depth_top < depth_base`, iar toate adâncimile sunt în \[0, `final_depth`\] ale punctului. |
 | E08 | eroare | Straturile aceluiași punct nu se suprapun. |
 | E09 | eroare | Fiecare `test_id` are fișierul de date, și fiecare fișier de date are un `test_id`. În fiecare fișier, `depth` e strict crescătoare. |
@@ -541,6 +554,9 @@ Verificare: două pachete de test, ambele cu un punct `F1`, au fost încărcate 
 | 18 | Un punct aparține unui singur proiect. | Un foraj preluat într-un proiect nou se dublează. Relația „un punct în mai multe proiecte” e amânată după v1.0. |
 | 19 | Vocabularul de încercări și metode e închis și confirmat. | Cheile, codurile de metodă și cheile rezervate din 4.4. Metodele rămân în vocabular chiar dacă nu se folosesc într-o anumită țară (de exemplu `fluid_displacement` în România). |
 | 20 | Câmpurile de proveniență se amână după v1.0. | Nu există `producer.method`, `reviewed_by` sau `reviewed_at` în manifest. Un pachet produs cu ajutorul unui asistent AI amestecă date introduse manual, extrase de AI și convertite, deci un indicator la nivel de pachet ar fi fals. Până atunci, programul producător se trece în `producer.software`. |
+| 21 | Simbolurile unităților urmează UCUM, varianta sensibilă la majuscule. | Unitățile rămân fixe per câmp; UCUM fixează doar scrierea simbolului (`unit_system` în schemă). |
+| 22 | Lucrările liniare au poziție kilometrică și distanță față de ax. | `points.station[m]`, `points.offset[m]` (pozitiv la dreapta), `points.alignment`. Coordonatele rămân obligatorii. |
+| 23 | Rândurile pot indica documentul sursă. | Coloana `source_file` (5.6), cu pagină opțională `#page=N`; fișierul trebuie să existe în `attachments/` (E06). |
 
 ### Deschise
 

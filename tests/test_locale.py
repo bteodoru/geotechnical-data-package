@@ -55,3 +55,9 @@ def test_cli_ro(pkg_a, capsys):
     sub(pkg_a, "layers.csv", "F1,0.60,3.80", "F1,0.60,0.50")
     main(["--lang", "ro", str(pkg_a)])
     assert "layers.csv:3:depth_base[m] E07 depth_base (0.50) ≤ depth_top (0.60)" in capsys.readouterr().out
+
+
+def test_all_fields_labelled():
+    missing = [f"tables.{t}.fields.{f['name']}" for t, d in SCHEMA["tables"].items() for f in d["fields"]
+               if not LOCALE.get(f"tables.{t}.fields.{f['name']}", {}).get("label")]
+    assert missing == []

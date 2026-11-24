@@ -11,6 +11,7 @@ def run(ctx: Context) -> None:
         _primary_key(ctx, t, spec)
         _foreign_keys(ctx, t, spec)
         _campaigns(ctx, t)
+        _attachments(ctx, t)
 
 
 def _primary_key(ctx, t, spec) -> None:
@@ -50,6 +51,21 @@ def _foreign_keys(ctx, t, spec) -> None:
             if value is not None and value not in keys and row.cells[field] not in broken:
                 ctx.out.add("E06", "unresolved", t.path, row.line, t.col(field),
                             column=field, value=row.cells[field], table=target)
+
+
+def _attachments(ctx, t) -> None:
+    fields = [f["name"] for f in SCHEMA["tables"][t.name]["fields"] if f.get("references") == "attachment"]
+    if not fields:
+        return
+    names = set(ctx.pkg.names())
+    for field in fields:
+        for row in t.rows:
+            value = row.values.get(field)
+            if value is None:
+                continue
+            path = value.split("#", 1)[0]
+            if f"attachments/{path}" not in names:
+                ctx.out.add("E06", "source_unresolved", t.path, row.line, t.col(field), value=path)
 
 
 def _campaigns(ctx, t) -> None:

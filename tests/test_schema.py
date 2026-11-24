@@ -13,7 +13,7 @@ EXPECTED = {
     "E03": {"missing_column", "wrong_unit", "duplicate_column", "bad_header", "unreadable"},
     "E04": {"bad_value", "required_empty", "out_of_bounds", "row_length"},
     "E05": {"duplicate_key"},
-    "E06": {"unresolved", "campaign_unresolved", "campaign_required"},
+    "E06": {"unresolved", "campaign_unresolved", "campaign_required", "source_unresolved"},
     "E07": {"top_not_above_base", "beyond_final_depth"},
     "E08": {"overlap"},
     "E09": {"data_file_missing", "orphan_data_file", "not_increasing"},

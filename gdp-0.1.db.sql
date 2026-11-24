@@ -53,9 +53,13 @@ CREATE TABLE points (
   northing REAL NOT NULL, -- [m]
   elevation REAL, -- [m]
   final_depth REAL NOT NULL, -- [m]
+  station REAL, -- [m]
+  offset REAL, -- [m]
+  alignment TEXT,
   date_start TEXT,
   date_end TEXT,
   method TEXT,
+  source_file TEXT,
   remarks TEXT,
   PRIMARY KEY (project_key, point_id),
   FOREIGN KEY (project_key, campaign_id) REFERENCES campaigns(project_key, campaign_id) ON DELETE CASCADE
@@ -78,6 +82,7 @@ CREATE TABLE layers (
   description TEXT NOT NULL,
   soil_symbol TEXT,
   unit_id TEXT,
+  source_file TEXT,
   PRIMARY KEY (project_key, point_id, depth_top),
   FOREIGN KEY (project_key, point_id) REFERENCES points(project_key, point_id) ON DELETE CASCADE,
   FOREIGN KEY (project_key, unit_id) REFERENCES units(project_key, unit_id) ON DELETE CASCADE
@@ -90,6 +95,7 @@ CREATE TABLE water (
   kind TEXT NOT NULL,
   depth REAL NOT NULL, -- [m]
   datetime TEXT,
+  source_file TEXT,
   remarks TEXT,
   FOREIGN KEY (project_key, point_id) REFERENCES points(project_key, point_id) ON DELETE CASCADE
 );
@@ -102,6 +108,7 @@ CREATE TABLE samples (
   depth_top REAL NOT NULL, -- [m]
   depth_base REAL, -- [m]
   kind TEXT NOT NULL,
+  source_file TEXT,
   remarks TEXT,
   PRIMARY KEY (project_key, sample_id),
   FOREIGN KEY (project_key, point_id) REFERENCES points(project_key, point_id) ON DELETE CASCADE,
@@ -120,6 +127,7 @@ CREATE TABLE lab_index (
   silt REAL, -- [%]
   sand REAL, -- [%]
   gravel REAL, -- [%]
+  source_file TEXT,
   remarks TEXT,
   PRIMARY KEY (project_key, sample_id),
   FOREIGN KEY (project_key, sample_id) REFERENCES samples(project_key, sample_id) ON DELETE CASCADE
@@ -135,6 +143,7 @@ CREATE TABLE cpt_tests (
   filter_position TEXT,
   predrill_depth REAL, -- [m]
   equipment TEXT,
+  source_file TEXT,
   remarks TEXT,
   PRIMARY KEY (project_key, test_id),
   FOREIGN KEY (project_key, point_id) REFERENCES points(project_key, point_id) ON DELETE CASCADE

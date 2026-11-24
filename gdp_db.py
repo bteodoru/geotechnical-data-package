@@ -33,7 +33,7 @@ SCHEMA = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
 G = SCHEMA["constants"]["g"]["value"]
 
 SQL_TYPE = {"id": "TEXT", "text": "TEXT", "code": "TEXT", "date": "TEXT",
-            "datetime": "TEXT", "number": "REAL", "integer": "INTEGER", "bool": "INTEGER"}
+            "datetime": "TEXT", "file_ref": "TEXT", "number": "REAL", "integer": "INTEGER", "bool": "INTEGER"}
 
 # Diferențe dintre pachet și baza de date (normalizare), aplicate peste schema pachetului.
 DB_DROP = {"lab_index": {"gamma", "gamma_s"}}          # convertite în rho, rho_s

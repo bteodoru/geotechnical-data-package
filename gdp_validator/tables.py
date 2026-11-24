@@ -81,7 +81,19 @@ def read_table(ctx: Context, table: str, path: str) -> Table | None:
         for name in fields:
             if name in usable:
                 _cell(ctx, t, row, fields[name], row.cells.get(name, ""))
+        _required_if(ctx, t, row, fields)
     return t
+
+
+def _required_if(ctx: Context, t: Table, row: Row, fields: dict) -> None:
+    """Fields required when another field of the same row has a value (required_if: {"field": ...})."""
+    for name, f in fields.items():
+        trigger = (f.get("required_if") or {}).get("field")
+        if trigger and trigger in row.values and not row.cells.get(name):
+            if name in t.header and name not in t.usable:
+                continue                      # wrong unit: already reported
+            ctx.out.add("E04", "required_empty", t.path, row.line, t.col(name), allowed=closed_list(f), column=name)
+            row.ok = False
 
 
 def _header(ctx, table, path, fields, cells):

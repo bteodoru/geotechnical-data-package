@@ -27,14 +27,16 @@ project.gdp  (zip)
 ├── lab/index.csv          profile lab_index: one row per sample (w, wL, wP, rho|gamma, rho_s|gamma_s, fractions)
 ├── cpt/tests.csv          profile cpt: one row per test
 ├── cpt/data/<test_id>.csv one dense series per test
-└── attachments/           optional
+└── attachments/           optional: source documents (PDF, GEF…), referenced by source_file
 ```
 
 The main rules:
 
-- **Fixed SI units.** Each unit is written in the header (`depth[m]`, `qc[MPa]`), and there is no unit option.
+- **Fixed SI units.** Each unit is written in the header (`depth[m]`, `qc[MPa]`), spelled as in UCUM, and there is no unit option.
 - **Only measured quantities are stored.** Derived values such as IP, IC, qt or Ic are recomputed, so they cannot be inconsistent.
 - **Extensions.** Custom columns take the `x_` prefix and are ignored by readers that do not know them.
+- **Source documents.** Any point, layer, water observation, sample, lab row or CPT test can name its source in `attachments/` (`source_file`, optionally `#page=N`), so every value can be checked against the page it came from.
+- **Linear works.** Points can also carry a chainage and an offset from an alignment (`station[m]`, `offset[m]`, `alignment`).
 
 A few rows of `points.csv`:
 
