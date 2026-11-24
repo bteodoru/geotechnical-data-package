@@ -123,7 +123,7 @@ Tests: `.venv/bin/pip install "pytest>=8" && .venv/bin/python -m pytest`.
 
 ## Relation to AGS and DIGGS
 
-GDP builds on both formats. From AGS 4 it takes the organisation of data into one table per kind of record, the link from records to their source documents, and linear referencing (AGS 4 `LOCA_CNGE`, `LOCA_OFFS`, `LOCA_ALID` become `station`, `offset`, `alignment`; GDP adds a fixed unit and a sign convention). DIGGS also supports linear referencing, and its controlled vocabularies are meant to be used in local terminology, the same idea as GDP's locale files. GDP is meant to work alongside both formats, not to replace them.
+GDP builds mainly on AGS 4, from which it takes the organisation of data into one table per kind of record, the link from records to their source documents, and linear referencing (AGS 4 `LOCA_CNGE`, `LOCA_OFFS`, `LOCA_ALID` become `station`, `offset`, `alignment`; GDP adds a fixed unit and a sign convention). DIGGS 2.6 describes the same kind of location with a station name, an offset and an offset direction along a named route (`LocalityType`). GDP is meant to work alongside both formats, not to replace them.
 
 ## License
 
