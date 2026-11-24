@@ -2,7 +2,9 @@
 și importă pachete .gdp (zip sau folder).
 
     python gdp_db.py ddl                    > gdp-0.1.db.sql
-    python gdp_db.py load baza.sqlite a.gdp b.gdp ...
+    python gdp_db.py load [--accept-newer] baza.sqlite a.gdp b.gdp ...
+
+Fiecare pachet e validat (gdp_validator) înainte de import; un pachet cu erori e refuzat.
 
 Baza de date conține mai multe proiecte. Cheia fiecărei entități e (project_key, id local).
 Importul unui pachet înlocuiește complet datele anterioare cu același project.uuid.
@@ -21,8 +23,10 @@ import re
 import sqlite3
 import sys
 import tomllib
-import zipfile
 from pathlib import Path
+
+from gdp_validator import validate
+from gdp_validator.package import Package
 
 SCHEMA_PATH = Path(__file__).with_name("gdp-0.1.schema.json")
 SCHEMA = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
@@ -193,31 +197,11 @@ def ddl() -> str:
 
 # ---------------------------------------------------------------- import
 
-class Package:
-    """Acces uniform la un pachet: zip .gdp sau folder."""
-
-    def __init__(self, path: Path):
-        self.path = path
-        self.zip = zipfile.ZipFile(path) if path.is_file() else None
-
-    def names(self) -> list[str]:
-        if self.zip:
-            return self.zip.namelist()
-        return [p.relative_to(self.path).as_posix() for p in self.path.rglob("*") if p.is_file()]
-
-    def read(self, name: str) -> str | None:
-        try:
-            raw = self.zip.read(name) if self.zip else (self.path / name).read_bytes()
-        except (KeyError, FileNotFoundError):
-            return None
-        return raw.decode("utf-8-sig")
-
-
 HEADER_RE = re.compile(r"^(?P<name>[A-Za-z_][A-Za-z0-9_]*)(\[(?P<unit>[^\]]+)\])?$")
 
 
 def read_table(pkg: Package, path: str, table: str) -> list[dict]:
-    text = pkg.read(path)
+    text = pkg.read_text(path)
     if text is None:
         return []
     reader = csv.reader(io.StringIO(text))
@@ -226,12 +210,7 @@ def read_table(pkg: Package, path: str, table: str) -> list[dict]:
     names = []
     for h in header:
         m = HEADER_RE.match(h.strip())
-        if not m:
-            raise ValueError(f"{path}: antet invalid '{h}'")
-        name, unit = m["name"], m["unit"]
-        if name in spec and spec[name].get("unit") != unit:
-            raise ValueError(f"{path}: {name} are unitatea [{unit}], schema cere [{spec[name].get('unit')}] (E03)")
-        names.append(name)
+        names.append(m["name"] if m else h.strip())   # antetul a fost validat
     rows = []
     for raw in reader:
         if not any(v.strip() for v in raw):
@@ -254,9 +233,12 @@ def read_table(pkg: Package, path: str, table: str) -> list[dict]:
     return rows
 
 
-def load(db: sqlite3.Connection, pkg_path: Path) -> str:
+def load(db: sqlite3.Connection, pkg_path: Path, accept_newer: bool = False) -> str:
+    report = validate(pkg_path, accept_newer=accept_newer)
+    if not report.ok:
+        raise ValueError(f"{pkg_path}: pachet invalid\n{report.to_text()}")
     pkg = Package(pkg_path)
-    manifest = tomllib.loads(pkg.read("manifest.toml"))
+    manifest = tomllib.loads(pkg.read_text("manifest.toml"))
     proj, prod = manifest["project"], manifest.get("producer", {})
     uuid = proj["uuid"]
 
@@ -278,7 +260,7 @@ def load(db: sqlite3.Connection, pkg_path: Path) -> str:
     for name in campaign_files:
         cid = Path(name).stem
         campaign_ids.append(cid)
-        c = tomllib.loads(pkg.read(name))
+        c = tomllib.loads(pkg.read_text(name))
         fr = c.get("fractions", {})
         src = fr.get("source")
         limits = fr.get("upper_mm") if src == "custom" else registry.get(src, {})
@@ -289,8 +271,6 @@ def load(db: sqlite3.Connection, pkg_path: Path) -> str:
         for test, standard in c.get("standards", {}).items():
             cur.execute("INSERT INTO campaign_procedures VALUES (?,?,?,?,?)",
                         (pk, cid, test, standard, methods.get(test)))
-    if not campaign_ids:
-        raise ValueError("campaigns/ nu conține niciun fișier (E02)")
     single = campaign_ids[0] if len(campaign_ids) == 1 else None
 
     def insert(table: str, rows: list[dict], extra: dict | None = None):
@@ -307,8 +287,6 @@ def load(db: sqlite3.Connection, pkg_path: Path) -> str:
     point_campaign = {}
     for p in points:
         p["campaign"] = p.get("campaign") or single
-        if p["campaign"] is None:
-            raise ValueError(f"punctul {p['point_id']} nu indică o campanie, dar pachetul are mai multe (E06)")
         point_campaign[p["point_id"]] = p["campaign"]
 
     insert("points", points)
@@ -323,10 +301,7 @@ def load(db: sqlite3.Connection, pkg_path: Path) -> str:
 
     lab = read_table(pkg, "lab/index.csv", "lab_index")
     for r in lab:
-        has_rho = r.get("rho") is not None or r.get("rho_s") is not None
         has_gamma = r.get("gamma") is not None or r.get("gamma_s") is not None
-        if has_rho and has_gamma:
-            raise ValueError(f"lab_index {r['sample_id']}: rho și gamma simultan (E12)")
         if has_gamma:
             r["rho"] = r["gamma"] / G if r.get("gamma") is not None else None
             r["rho_s"] = r["gamma_s"] / G if r.get("gamma_s") is not None else None
@@ -336,8 +311,6 @@ def load(db: sqlite3.Connection, pkg_path: Path) -> str:
     insert("cpt_tests", tests)
     for t in tests:
         data = read_table(pkg, f"cpt/data/{t['test_id']}.csv", "cpt_data")
-        if not data:
-            raise ValueError(f"lipsește cpt/data/{t['test_id']}.csv (E09)")
         insert("cpt_data", data, extra={"test_id": t["test_id"]})
 
     db.commit()
@@ -347,15 +320,21 @@ def load(db: sqlite3.Connection, pkg_path: Path) -> str:
 def main(argv: list[str]) -> None:
     if argv[:1] == ["ddl"]:
         sys.stdout.write(ddl())
-    elif argv[:1] == ["load"] and len(argv) >= 3:
-        db_path = Path(argv[1])
+    elif argv[:1] == ["load"]:
+        args = argv[1:]
+        accept_newer = "--accept-newer" in args
+        args = [a for a in args if a != "--accept-newer"]
+        if len(args) < 2:
+            print(__doc__)
+            return
+        db_path = Path(args[0])
         new = not db_path.exists()
         db = sqlite3.connect(db_path)
         db.execute("PRAGMA foreign_keys = ON")
         if new:
             db.executescript(ddl())
-        for p in argv[2:]:
-            print("încărcat:", load(db, Path(p)))
+        for p in args[1:]:
+            print("încărcat:", load(db, Path(p), accept_newer=accept_newer))
     else:
         print(__doc__)
 
