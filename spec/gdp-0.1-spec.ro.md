@@ -545,9 +545,10 @@ Verificare: două pachete de test, ambele cu un punct `F1`, au fost încărcate 
 ### Deschise
 
 1. **Registrele vocabularului din 4.4.** Trebuie publicat registrul de standarde cunoscute, inclusiv tabelul standard → limite granulometrice, și stabilite standardele pentru `swelling` și `collapse`.
-2. **Puncte înclinate și corecția de înclinare la CPT.** E de stabilit dacă `depth` rămâne lungime de penetrare sau devine adâncime adevărată.
+2. **Puncte înclinate și corecția de înclinare la CPT.** E de stabilit dacă `depth` rămâne lungime de penetrare sau devine adâncime adevărată. Varianta candidată pentru o versiune ulterioară: coloanele opționale `points.plunge[deg]` și `points.bearing[deg]`, cu adâncimile măsurate de-a lungul găurii; lipsa lor înseamnă punct vertical.
 3. **Liste de coduri.** Simbolurile SR EN ISO 14688 sau denumirile tradiționale STAS, și cine întreține listele.
 4. **Interpretarea.** Ori un profil `interpretation` (valori caracteristice NP 122 raportate la `unit_id`), ori lăsată integral în seama AGSi.
 5. **Guvernanța.** Specificația este publicată ca proiect deschis (GitHub, CC BY 4.0). Rămâne de stabilit cine întreține formatul și cum se iau deciziile: autorul, o organizație GitHub dedicată sau un organism profesional. Fiecare variantă schimbă percepția de neutralitate.
 6. **După v1.0: puncte comune mai multor proiecte.** De exemplu o coloană `points.origin` (`<project_uuid>/F3`), care ar permite unei baze de date să recunoască dublurile. Se introduce doar dacă se dovedește utilă.
+8. **Vocabular versionat separat.** Pentru o versiune ulterioară: vocabularele (încercări, metode, coduri, registre) într-un fișier propriu, cu versiune proprie, ca să se poată adăuga coduri și profile fără o versiune nouă a formatului. Necesită o regulă pentru pachetele care folosesc coduri mai noi decât validatorul.
 7. **După v1.0: proveniența datelor.** De exemplu metoda de producere (`manual`, `converted`, `ai_extracted`) și verificarea (`reviewed_by`, `reviewed_at`), ca o bază de date să poată filtra datele extrase de AI neverificate. Nivelul (pachet, tabel sau rând) se stabilește din utilizarea reală.

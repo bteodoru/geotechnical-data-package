@@ -1,5 +1,5 @@
 [project]
-name = "gdp"
+name = "geotechnical-data-package"
 version = "0.1.0"
 description = "GDP (Geotechnical Data Package) reference tools: validator and SQLite importer"
 requires-python = ">=3.11"
