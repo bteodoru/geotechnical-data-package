@@ -175,6 +175,8 @@ Regula care rezultă: **într-o campanie, o încercare se face cu un singur stan
 
 Vocabularul e închis. Un fișier de campanie folosește doar cheile și codurile de mai jos, plus extensii cu prefixul `x_`. Un cod de metodă există numai acolo unde standardul descrie metode distincte.
 
+**O cheie de încercare e unitatea pentru care campania declară un standard și o metodă.** Ce poate varia de la o încercare la alta în aceeași campanie nu se declară în campanie. Dacă definește tipul încercării, face parte din cheie; dacă e o condiție a încercării (de exemplu presiunea de consolidare), e o coloană în datele profilului. La încercările de rezistență, condiția de drenaj face parte din cheie (`triaxial_uu`, `triaxial_cu`, `triaxial_cd`, `direct_shear_uu`…): UU și CU au standarde diferite (SR EN ISO 17892-8 și 17892-9) și apar frecvent în aceeași campanie. Cheile separate nu înseamnă tabele separate: un profil poate ține mai multe chei într-un singur tabel, cu o coloană care indică cheia fiecărui rând.
+
 | Cheie              | Mărimi                           | Standard de referință | Coduri `method`                                                                                  |
 | ------------------ | -------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------ |
 | `water_content`    | `w`                              | SR EN ISO 17892-1     | — (o singură metodă)                                                                             |
@@ -190,7 +192,7 @@ Metodele corespund celor descrise în fiecare standard: trei pentru densitate ([
 - **Codurile de granulometrie descriu combinația completă** (`sieving_hydrometer`), nu o listă, ca valoarea să rămână text simplu. `laser_diffraction` nu face parte din SR EN ISO 17892-4 și se declară cu standardul său propriu.
 - **O metodă nedeclarată e nespecificată.** Nu există cod `unknown` pentru metode.
 
-**Chei rezervate** pentru profile viitoare, fără coduri de metodă deocamdată: `oedometer`, `unconfined_compression`, `triaxial_uu`, `triaxial_cu`, `triaxial_cd`, `direct_shear`, `permeability`, `compaction`, `organic_content`, `carbonate_content`, `swelling`, `collapse`. Ultimele două acoperă pământurile cu umflări și contracții mari și pământurile sensibile la umezire, specifice practicii românești. Standardele lor rămân de stabilit.
+**Chei rezervate** pentru profile viitoare, fără coduri de metodă deocamdată: `oedometer`, `unconfined_compression`, `triaxial_uu`, `triaxial_cu`, `triaxial_cd`, `direct_shear_uu`, `direct_shear_cu`, `direct_shear_cd`, `permeability`, `compaction`, `organic_content`, `carbonate_content`, `swelling`, `collapse`. Ultimele două acoperă pământurile cu umflări și contracții mari și pământurile sensibile la umezire, specifice practicii românești. Standardele lor rămân de stabilit.
 
 **Standardele sunt text.** Se scriu ca pe copertă, fără an (`SR EN ISO 17892-12`); anul se poate adăuga după două puncte (`SR EN ISO 17892-12:2018`). Implementarea de referință ține un registru de standarde cunoscute. Un standard nerecunoscut produce un avertisment (W05), nu o eroare, ca standardele noi sau vechi să nu blocheze pachetul.
 
@@ -559,6 +561,7 @@ Verificare: două pachete de test, ambele cu un punct `F1`, au fost încărcate 
 | 21  | Simbolurile unităților urmează UCUM, varianta sensibilă la majuscule.           | Unitățile rămân fixe per câmp; UCUM fixează doar scrierea simbolului (`unit_system` în schemă).                                                                                                                                                                                                          |
 | 22  | Lucrările liniare au poziție kilometrică și distanță față de ax.                | `points.station[m]`, `points.offset[m]` (pozitiv la dreapta), `points.alignment`. Coordonatele rămân obligatorii.                                                                                                                                                                                        |
 | 23  | Rândurile pot indica documentul sursă.                                          | Coloana `source_file` (5.6), cu pagină opțională `#page=N`; fișierul trebuie să existe în `attachments/` (E06).                                                                                                                                                                                          |
+| 24  | O cheie de încercare are un singur standard și o singură metodă pe campanie.    | Condiția de drenaj face parte din cheie la încercările de rezistență: cheile rezervate `triaxial_uu`, `triaxial_cu`, `triaxial_cd`, `direct_shear_uu`, `direct_shear_cu`, `direct_shear_cd` (4.4). Un profil poate grupa mai multe chei într-un tabel, cu o coloană care indică cheia.                   |
 
 ### Deschise
 
@@ -570,3 +573,4 @@ Verificare: două pachete de test, ambele cu un punct `F1`, au fost încărcate 
 6. **După v1.0: puncte comune mai multor proiecte.** De exemplu o coloană `points.origin` (`<project_uuid>/F3`), care ar permite unei baze de date să recunoască dublurile. Se introduce doar dacă se dovedește utilă.
 7. **Vocabular versionat separat.** Pentru o versiune ulterioară: vocabularele (încercări, metode, coduri, registre) într-un fișier propriu, cu versiune proprie, ca să se poată adăuga coduri și profile fără o versiune nouă a formatului. Necesită o regulă pentru pachetele care folosesc coduri mai noi decât validatorul.
 8. **După v1.0: proveniența datelor.** De exemplu metoda de producere (`manual`, `converted`, `ai_extracted`) și verificarea (`reviewed_by`, `reviewed_at`), ca o bază de date să poată filtra datele extrase de AI neverificate. Nivelul (pachet, tabel sau rând) se stabilește din utilizarea reală.
+9. **Metode care variază în aceeași campanie.** De exemplu permeabilitatea cu nivel constant la nisipuri și cu nivel variabil la argile, sau Proctor normal și modificat, în același program de laborator. Regula din 4.3 le-ar separa în campanii diferite. Se decide la proiectarea profilelor mecanice.
