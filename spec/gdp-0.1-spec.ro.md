@@ -1,6 +1,8 @@
+> Aceasta e traducerea în română a specificației [`gdp-0.1-spec.md`](gdp-0.1-spec.md) și poate rămâne în urma ei. Textul englez prevalează; schema [`gdp-0.1.schema.json`](../gdp-0.1.schema.json) e normativă pentru amândouă.
+
 # Format de date geotehnice — nucleu v0.1 (draft)
 
-Nov 24, 2026 · @Bogdan Teodoru
+Versiunea 0.1 (draft), 2026-11-28 · Bogdan Teodoru
 
 ## 1. Scop și principii
 
@@ -41,7 +43,7 @@ proiect.gdp
 └── attachments/           opțional: PDF, fotografii, fișe originale, indicate prin source_file
 ```
 
-Relațiile dintre fișiere trec prin trei chei:
+Relațiile dintre fișiere trec prin aceste chei:
 
 ```
 points.point_id ─┬─ layers, water, samples, cpt/tests
@@ -495,7 +497,7 @@ Nucleul are un corespondent AGS 4 pentru fiecare tabel. Deci un convertor bidire
 | `cpt_tests`             | SCPG                         | `area_ratio` → raportul de arii al conului din SCPG.                                                                                                                                                                                                                                                                                                                             |
 | `cpt/data/*`            | SCPT                         | SCPT_DPTH, SCPT_RES, SCPT_FRES, SCPT_PWP2. Un grup unic devine câte un fișier per test.                                                                                                                                                                                                                                                                                          |
 
-## 11b. Schema citibilă de mașină și baza de date
+## 12. Schema citibilă de mașină și baza de date
 
 Specificația are o sursă unică, `gdp-0.1.schema.json`. Din ea se obțin validatorul, documentația tabelelor și schema bazei de date. Schema e neutră lingvistic: numele, descrierile și regulile sunt în engleză. Etichetele, sinonimele și mesajele de eroare într-o anumită limbă stau în fișiere de localizare opționale, `locales/gdp-0.1.<lang>.json`. Cheile lor sunt căi în schemă, de exemplu `tables.lab_index.fields.w`. Un element fără intrare de localizare își păstrează numele canonic. Sinonimele (`W`, `Wn`, `umiditate`) servesc mai ales unui AI care mapează documente sursă pe câmpurile canonice. Fișierul conține:
 
@@ -518,7 +520,9 @@ Unitatea probelor și a adâncimilor CPT se obține prin vederile `v_sample_cont
 
 Verificare: două pachete de test, ambele cu un punct `F1`, au fost încărcate în aceeași bază SQLite, iar unul dintre ele a fost reimportat. Nu au apărut coliziuni sau încălcări de chei străine. Unitățile au fost deduse pentru toate probele și toate cele 490 de adâncimi CPT.
 
-## 12. Decizii
+## 13. Decizii de proiectare
+
+Deciziile de mai jos arată motivele formatului: cele deja luate și cele încă deschise.
 
 ### Luate
 

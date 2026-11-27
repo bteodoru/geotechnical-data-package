@@ -4,7 +4,7 @@ An open file format for factual geotechnical investigation data (soils): CSV tab
 
 ## Rules
 
-- `gdp-0.1.schema.json` is the source of truth. The spec (`spec/gdp-0.1-spec.ro.md`), the DB DDL and the locale files must follow it; the schema wins on conflict.
+- `gdp-0.1.schema.json` is the source of truth. The spec (`spec/gdp-0.1-spec.md`, primary text; `spec/gdp-0.1-spec.ro.md`, Romanian translation), the DB DDL and the locale files must follow it; the schema wins on conflict.
 - `gdp-0.1.db.sql` is generated (`python3 gdp_db.py ddl > gdp-0.1.db.sql`); never edit it by hand.
 - Validator messages live only in the schema (`rules[*].checks`, English templates) and in `locales/gdp-<version>.<lang>.json`; never hardcode message text in Python.
 - Check ids in `rules[*].checks` are stable once released.

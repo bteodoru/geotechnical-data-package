@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use GDP, please cite it as below."
+type: software
+title: "GDP (Geotechnical Data Package)"
+abstract: >-
+  An open file format for factual geotechnical investigation data (soils):
+  CSV tables and TOML files in a zip, with a machine-readable schema,
+  a reference validator and a SQLite importer.
+version: 0.1.0
+authors:
+  - family-names: Teodoru
+    given-names: Bogdan
+    orcid: "https://orcid.org/0000-0001-8298-9374"
+license:
+  - MIT
+  - CC-BY-4.0
+repository-code: "https://github.com/bteodoru/geotechnical-data-package"
+keywords:
+  - geotechnical engineering
+  - site investigation
+  - geotechnical data exchange
+  - data format
+  - CSV
+  - AGS 4
+  - DIGGS

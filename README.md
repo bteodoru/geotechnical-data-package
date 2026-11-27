@@ -13,7 +13,7 @@ Compared with AGS 4 and DIGGS:
 | Context | standards in `STND`, methods in test fields (`*_METH`) | a `procedure` with each test | per campaign: standards, methods and grain-size limits declared once |
 | Manual authoring | possible, with the data dictionary at hand | possible, but verbose | designed for a text editor or a spreadsheet |
 
-**Status: v0.1, draft.** Soils only; rock mechanics is out of scope for now. The schema is normative and in English; the specification text is currently written in Romanian.
+**Status: v0.1, draft.** Soils only; rock mechanics is out of scope for now. The [specification](spec/gdp-0.1-spec.md) is in English, with a [Romanian translation](spec/gdp-0.1-spec.ro.md); the [schema](gdp-0.1.schema.json) is normative over both.
 
 ## Package structure
 
@@ -72,12 +72,65 @@ source = "SR EN ISO 14688-1"
 
 Two complete packages are in [`examples/`](examples/).
 
+## Try it in 5 minutes
+
+You need Python ≥ 3.11 and the repository:
+
+```bash
+git clone https://github.com/bteodoru/geotechnical-data-package.git
+cd geotechnical-data-package
+python3 -m venv .venv && .venv/bin/pip install "jsonschema>=4.18"
+```
+
+1. Unzip the example package. A `.gdp` file is a zip; if your system does not open it, rename it to `.zip`.
+
+   ```bash
+   mkdir try && unzip examples/proiect_A.gdp -d try
+   ```
+
+2. Open `try/points.csv`, `try/layers.csv` or `try/lab/index.csv` in a text editor or a spreadsheet, and `try/campaigns/C2026.toml` in a text editor. The descriptions are in Romanian, as in the project they come from; GDP content can be in any language.
+
+3. Run the validator:
+
+   ```bash
+   .venv/bin/python gdp_validate.py try
+   ```
+
+   It prints `0 errors, 0 warnings`.
+
+4. Break something on purpose. In `try/points.csv`, change the `date_start` of `F1` from `2026-10-14` to `14.10.2026`, the way a spreadsheet often exports dates, and run the validator again:
+
+   ```
+   points.csv:2:date_start E04 14.10.2026 is not a valid date (YYYY-MM-DD); in a spreadsheet, format the column as yyyy-mm-dd before exporting
+   1 errors, 0 warnings
+   ```
+
+5. Restore the date. Then delete the `atterberg` line from `[standards]` in `try/campaigns/C2026.toml` and run with `--draft`: the missing standard is listed as something still to fill in, not as an error.
+
+   ```
+   missing:
+   campaigns/C2026.toml::standards.atterberg E11 atterberg has data in campaign C2026 but no standard is declared
+   0 errors, 0 warnings, 1 missing
+   ```
+
+## Feedback wanted
+
+GDP is a draft, published to find out whether it is useful outside the place where it started. Answers to any of these questions help:
+
+- Could you prepare a package from your own data with only a spreadsheet and a text editor? Where did you get stuck?
+- Which kind of data or test is missing for your work?
+- What would stop you from using GDP alongside, or instead of, AGS 4?
+- Is anything in the comparison with AGS 4 and DIGGS inaccurate?
+
+Report problems (a wrong rule, a validator bug, an error in the specification) in [Issues](https://github.com/bteodoru/geotechnical-data-package/issues). Opinions and answers to the questions above are welcome in [Discussions](https://github.com/bteodoru/geotechnical-data-package/discussions).
+
 ## Repository
 
 | Path | What |
 |---|---|
 | [`gdp-0.1.schema.json`](gdp-0.1.schema.json) | The source of truth: tables, fields, types, units, keys, vocabularies, registries, validation rules and message templates. |
-| [`spec/gdp-0.1-spec.ro.md`](spec/gdp-0.1-spec.ro.md) | Specification (Romanian). |
+| [`spec/gdp-0.1-spec.md`](spec/gdp-0.1-spec.md) | Specification. |
+| [`spec/gdp-0.1-spec.ro.md`](spec/gdp-0.1-spec.ro.md) | Specification, Romanian translation. |
 | [`locales/`](locales/) | Optional localizations: labels, synonyms and validator messages (Romanian). |
 | [`gdp_validator/`](gdp_validator/), [`gdp_validate.py`](gdp_validate.py) | Reference validator: library and command line. |
 | [`gdp_db.py`](gdp_db.py) | Imports packages into a multi-project SQLite database (DDL in [`gdp-0.1.db.sql`](gdp-0.1.db.sql), generated). |

@@ -1,4 +1,4 @@
-"""Addendum-1 proposals adopted on 2026-11-24: P3 (UCUM), P4 (station/offset), P6 (source_file)."""
+"""UCUM unit symbols, chainage and offset, source documents (spec §13, design decisions 21–23)."""
 import sqlite3
 
 import pytest

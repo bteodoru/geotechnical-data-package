@@ -1,4 +1,4 @@
-"""CSV dialects: ',' with decimal '.' and ';' with decimal ',', detected per file from the header (HANDOFF decision 31)."""
+"""CSV dialects: ',' with decimal '.' and ';' with decimal ',', detected per file from the header (spec §3; §13, design decision 25)."""
 import csv
 import io
 import json

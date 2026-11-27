@@ -7,3 +7,4 @@ __pycache__/
 docs/**
 HANDOFF.md
 CLAUDE.local.md
+.env
