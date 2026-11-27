@@ -1,5 +1,7 @@
 # GDP — Geotechnical Data Package
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24613557.svg)](https://doi.org/10.5281/zenodo.24613557)
+
 GDP (Geotechnical Data Package) is a format for the factual data of a geotechnical investigation. People can read and write it by hand, with the tools they already use (a text editor or a spreadsheet), and software, AI assistants included, can validate it automatically and help generate it. Two established formats already cover this data. AGS 4 is widely used, but its syntax and its dependence on a data dictionary make it hard to write or check by hand. DIGGS is comprehensive, but its XML/GML representation is verbose and hard to write, read or check by hand. GDP aims to be simpler than both: a package is a folder of plain CSV tables, distributed as a zip file and described by a small TOML manifest and one file per investigation campaign.
 
 Compared with AGS 4 and DIGGS:

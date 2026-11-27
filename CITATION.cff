@@ -8,6 +8,7 @@ abstract: >-
   a reference validator and a SQLite importer.
 version: 0.1.0
 date-released: 2026-11-28
+doi: 10.5281/zenodo.24613557
 authors:
   - family-names: Teodoru
     given-names: Bogdan
