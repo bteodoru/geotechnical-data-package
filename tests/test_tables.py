@@ -155,3 +155,14 @@ def test_unknown_column_message_says_not_read(pkg_a):
     sub(pkg_a, "lab/index.csv", ",remarks\n", ",IP\n")
     [issue] = [i for i in validate(pkg_a).issues if i.check == "unknown_column"]
     assert issue.message == "unknown column IP: not read (custom columns need the x_ prefix)"
+
+
+def test_identifier_up_to_64_characters(pkg_a):
+    sub(pkg_a, "samples.csv", "F1-P1,F1,1.50", "P" + "1" * 63 + ",F1,1.50")
+    sub(pkg_a, "lab/index.csv", "F1-P1,19.8,", "P" + "1" * 63 + ",19.8,")
+    assert not [i for i in validate(pkg_a).issues if i.check == "bad_value"]
+
+
+def test_identifier_of_65_characters_is_e04(pkg_a):
+    sub(pkg_a, "samples.csv", "F1-P1,F1,1.50", "P" + "1" * 64 + ",F1,1.50")
+    assert ("error", "E04", "bad_value", "samples.csv", 2, "sample_id") in found(validate(pkg_a))

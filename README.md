@@ -32,7 +32,7 @@ project.gdp  (zip)
 └── attachments/           optional: source documents (PDF, GEF…), referenced by source_file
 ```
 
-If a zip has no `manifest.toml` at its root but holds a single folder that has one, as Finder "Compress" and Windows "Send to → Compressed folder" produce, that folder is the package root.
+If a zip has no `manifest.toml` at its root but holds a single folder that has one, as Finder "Compress" and Windows "Send to → Compressed folder" produce, that folder is the package root. The rule is for zips only: a folder given to the tools must be the package root itself.
 
 The main rules:
 

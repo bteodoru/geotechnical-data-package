@@ -46,21 +46,37 @@ def test_paths_are_relative_to_the_root(pkg_a, tmp_path):
     assert ("error", "E07", "top_not_above_base", "layers.csv", 3, "depth_base[m]") in found(validate(z))
 
 
+def _only_hint(report, found):
+    assert [(i.level, i.code, i.check, i.path, i.row, i.column, i.params) for i in report.issues] == [
+        ("error", "E01", "manifest_elsewhere", "manifest.toml", None, "", {"found": found})]
+
+
 def test_two_top_level_folders(pkg_a, tmp_path):
     z = _zip(pkg_a, tmp_path / "two.zip", "proiect_A/", {"altceva/note.txt": b"x"})
     report = validate(z)
-    assert ("error", "E01", "manifest_missing", "manifest.toml", None, "") in found(report)
-    [hint] = [i for i in report.issues if i.check == "manifest_elsewhere"]
-    assert (hint.level, hint.code, hint.path) == ("error", "E01", "manifest.toml")
-    assert hint.message == "manifest.toml is not at the package root; found at proiect_A/manifest.toml"
+    _only_hint(report, "proiect_A/manifest.toml")
+    assert report.issues[0].message == "manifest.toml is not at the package root; found at proiect_A/manifest.toml"
+    _only_hint(validate(z, draft=True), "proiect_A/manifest.toml")
 
 
 def test_manifest_two_levels_deep(pkg_a, tmp_path):
     z = _zip(pkg_a, tmp_path / "deep.zip", "lucrari/proiect_A/")
-    report = validate(z)
-    assert ("error", "E01", "manifest_missing", "manifest.toml", None, "") in found(report)
-    assert [i.params for i in report.issues if i.check == "manifest_elsewhere"] == [
-        {"found": "lucrari/proiect_A/manifest.toml"}]
+    _only_hint(validate(z), "lucrari/proiect_A/manifest.toml")
+    _only_hint(validate(z, draft=True), "lucrari/proiect_A/manifest.toml")
+
+
+def test_folder_holding_the_package_in_a_subfolder(pkg_a, tmp_path):
+    outer = tmp_path / "lucrari"
+    outer.mkdir()
+    pkg_a.rename(outer / "proiect_A")
+    _only_hint(validate(outer), "proiect_A/manifest.toml")
+    _only_hint(validate(outer, draft=True), "proiect_A/manifest.toml")
+
+
+def test_no_manifest_anywhere_unchanged(pkg_a):
+    (pkg_a / "manifest.toml").unlink()
+    assert ("error", "E01", "manifest_missing", "manifest.toml", None, "") in found(validate(pkg_a))
+    assert ("missing", "E01", "manifest_missing", "manifest.toml", None, "") in found(validate(pkg_a, draft=True))
 
 
 def test_metadata_alone_does_not_hide_a_second_folder(pkg_a, tmp_path):
