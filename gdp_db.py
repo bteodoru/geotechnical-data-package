@@ -16,8 +16,6 @@ Normalizări la import:
 """
 from __future__ import annotations
 
-import csv
-import io
 import json
 import re
 import sqlite3
@@ -25,6 +23,7 @@ import sys
 import tomllib
 from pathlib import Path
 
+from gdp_validator import csvfile
 from gdp_validator import validate
 from gdp_validator.package import Package
 
@@ -204,15 +203,15 @@ def read_table(pkg: Package, path: str, table: str) -> list[dict]:
     text = pkg.read_text(path)
     if text is None:
         return []
-    reader = csv.reader(io.StringIO(text))
-    header = next(reader)
+    dialect, records = csvfile.records(text)
+    header = records[0][1]
     spec = {f["name"]: f for f in SCHEMA["tables"][table]["fields"]}
     names = []
     for h in header:
         m = HEADER_RE.match(h.strip())
         names.append(m["name"] if m else h.strip())   # antetul a fost validat
     rows = []
-    for raw in reader:
+    for _, raw in records[1:]:
         if not any(v.strip() for v in raw):
             continue
         row = {}
@@ -224,7 +223,7 @@ def read_table(pkg: Package, path: str, table: str) -> list[dict]:
             if value == "":
                 row[name] = None
             elif f["type"] == "number":
-                row[name] = float(value)
+                row[name] = csvfile.parse_number(value, dialect["decimal"])
             elif f["type"] == "integer":
                 row[name] = int(value)
             else:

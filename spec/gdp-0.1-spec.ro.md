@@ -8,8 +8,8 @@ GDP (Geotechnical Data Package) este un format pentru datele factuale ale unui p
 
 Nucleul v0.1 acoperă datele factuale ale unei investigații: puncte de investigare, stratificație, apă subterană, probe, indici de laborator și CPT/CPTu. Interpretarea (unități geotehnice, valori caracteristice, model de teren) rămâne în afara nucleului. Formatul se limitează la pământuri; rocile țin de mecanica rocilor și nu intră deocamdată în domeniu. Extensia pachetului e `.gdp`.
 
-- **CSV canonic, Excel compatibil.** Specificația se scrie pentru forma canonică, un zip cu CSV-uri. Pentru că Excel e omniprezent în practică, există și o reprezentare xlsx convertibilă fără pierderi, dar ea nu dictează nicio decizie de format.
-- **Un tabel = un fișier = un sheet.** Fără rânduri GROUP/UNIT/TYPE și fără ghilimele inutile.
+- **CSV, prietenos cu programele de calcul tabelar.** Tabelele sunt CSV-uri simple, în unul dintre cele două dialecte pe care le scriu programele de calcul tabelar după setările regionale: `,` cu punct zecimal sau `;` cu virgulă zecimală. Un tabel pregătit cu coloanele din specificație, cu datele calendaristice în forma ISO și salvat ca „CSV UTF-8”, e valid fără setări regionale și fără convertor (secțiunea 8). Formatul nu are o formă xlsx.
+- **Un tabel = un fișier.** Fără rânduri GROUP/UNIT/TYPE și fără ghilimele inutile.
 - **Nume citibile, cu unitatea în antet:** `depth_top[m]`, nu `GEOL_TOP`. Simbolurile unităților se scriu după UCUM, varianta sensibilă la majuscule (`Mg/m3`, `kN/m3`, `cm2`, `deg`).
 - **Chei simple.** Fiecare entitate are un singur identificator, unic în proiect. Nu există chei compuse.
 - **Se stochează doar mărimi măsurate.** Mărimile derivate (IP, IC, qt, Rf, Bq, Ic) se recalculează, deci nu pot fi inconsecvente.
@@ -59,17 +59,17 @@ Un cititor ignoră fișierele pe care nu le cunoaște. Astfel, un pachet v0.2 cu
 
 ## 3. Convenții generale
 
-Regulile de mai jos se aplică tuturor tabelelor. Sunt formulate pentru CSV; în xlsx, numerele și datele calendaristice sunt celule native, deci problemele de separator și zecimală dispar.
+Regulile de mai jos se aplică tuturor tabelelor.
 
 | Aspect              | Regula                                                                                                                                                                                                                           |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Codare text         | UTF-8. BOM-ul e acceptat, pentru că Excel îl scrie la „CSV UTF-8”.                                                                                                                                                               |
-| Separator, zecimală | `,` între câmpuri, `.` ca zecimală, fără separator de mii. Ghilimele doar când valoarea conține virgulă, ghilimele sau rând nou (RFC 4180).                                                                                      |
+| Separator, zecimală | Două dialecte: `,` între câmpuri cu `.` zecimal, sau `;` între câmpuri cu `,` zecimal. Dialectul se deduce din primul rând al fiecărui fișier: e cel al cărui separator apare singur în antet (numele coloanelor nu conțin `,` sau `;`), altfel primul. Zecimala e legată de separator, deci `1.234` într-un fișier cu `;` e eroare. Fără separator de mii. Ghilimele doar când valoarea conține separatorul, ghilimele sau rând nou (RFC 4180). Fișierele unui pachet pot avea dialecte diferite; programele care scriu GDP folosesc primul dialect. |
 | Antet               | Primul rând. Numele coloanei e exact cel din specificație, cu unitatea între paranteze drepte: `depth_top[m]`. Mărimile adimensionale nu au paranteze.                                                                           |
 | Unități             | SI, fixate de specificație pentru fiecare coloană. Unitatea din antet trebuie să coincidă cu cea specificată (v0.1 nu face conversii).                                                                                           |
 | Valoare lipsă       | Celulă goală. Nu se folosesc `-999`, `N/A`, `-`.                                                                                                                                                                                 |
-| Tipuri              | `id`, `text`, `number`, `integer`, `date` (`YYYY-MM-DD`), `datetime` (ISO 8601 cu fus orar, `2026-10-14T09:30+03:00`), `bool` (`true`/`false`), `code` (dintr-o listă de coduri).                                                |
-| Identificatori      | Caractere `A–Z a–z 0–9 _ - .`, fără spații, maximum 24 de caractere, sensibili la majuscule. Sunt folosiți și ca nume de fișiere și de sheet-uri.                                                                                |
+| Tipuri              | `id`, `text`, `number`, `integer`, `date` (`YYYY-MM-DD`, doar forma ISO), `datetime` (ISO 8601 cu fus orar, `2026-10-14T09:30+03:00`), `bool` (`true`/`false`), `code` (dintr-o listă de coduri).                                                |
+| Identificatori      | Caractere `A–Z a–z 0–9 _ - .`, fără spații, maximum 24 de caractere, sensibili la majuscule. Sunt folosiți și ca nume de fișiere.                                                                                |
 | Adâncimi            | Metri sub nivelul terenului din punctul respectiv, pozitive în jos. Un interval e `[depth_top, depth_base)`, cu `depth_top < depth_base`. Ultimul interval al unui punct include și baza, când aceasta e egală cu `final_depth`. |
 | Cote                | Metri față de datumul vertical din manifest (de exemplu Marea Neagră 1975).                                                                                                                                                      |
 | Coordonate          | Un singur CRS per proiect, declarat în manifest ca cod EPSG (de exemplu `EPSG:3844`, Stereo 70). Coloanele se numesc `easting` și `northing`, ca să nu existe ambiguitatea X/Y din Stereo 70.                                    |
@@ -351,32 +351,17 @@ Antetul decide între densitate și greutate volumică. Un fișier `lab_index` c
 
 Au fost lăsate deliberat în afară IP, IC, e, n, Sr și ρd (sau γd), pentru că se calculează din coloanele de mai sus. Curba granulometrică completă va fi un profil separat, cu o serie per probă, construit după același model ca seriile CPT.
 
-## 8. Reprezentarea xlsx
+## 8. Programe de calcul tabelar (informativ)
 
-Reprezentarea xlsx e o vedere a pachetului, nu punctul lui de plecare. Instrumentul de referință convertește pachetul în xlsx și înapoi fără pierderi, iar validatorul acceptă xlsx ca intrare. Dacă o regulă a formatului e incomodă în Excel, problema se rezolvă în convertor, nu prin modificarea formatului. Fișierele TOML devin sheet-uri cu două coloane, `key` și `value`, iar secțiunile imbricate devin chei cu punct (`methods.atterberg`, `fractions.upper_mm.clay`). Convertorul poate adăuga și un sheet de sinteză, `_campaigns`, cu campaniile pe coloane și încercările pe rânduri; fiind ignorat la citire, el nu poate contrazice fișierele de campanie.
+Secțiunea nu adaugă reguli. Descrie capcanele întâlnite când un tabel se pregătește într-un program de calcul tabelar (Excel, LibreOffice, Numbers) și se exportă ca CSV.
 
-| Tabel / fișier         | Nume sheet                                                        |
-| ---------------------- | ----------------------------------------------------------------- |
-| `manifest.toml`        | `manifest` (coloane `key`, `value`)                               |
-| `campaigns/C2026.toml` | `camp_C2026` (coloane `key`, `value`; câte un sheet per campanie) |
-| `points.csv`           | `points`                                                          |
-| `layers.csv`           | `layers`                                                          |
-| `water.csv`            | `water`                                                           |
-| `samples.csv`          | `samples`                                                         |
-| `lab/index.csv`        | `lab_index`                                                       |
-| `cpt/tests.csv`        | `cpt_tests`                                                       |
-| `cpt/data/CPT1.csv`    | `cpt_CPT1` (câte un sheet per test)                               |
-
-Regulile șablonului:
-
-1. Rândul 1 e antetul, cu numele exacte din specificație. Datele încep pe rândul 2.
-2. Fără celule îmbinate și fără rânduri goale în interiorul tabelului. Primul rând complet gol încheie tabelul.
-3. Numerele și datele se introduc ca celule native, nu ca text. Asta elimină problema zecimalei cu virgulă din setările regionale românești.
-4. Formulele sunt permise. Se citește valoarea calculată, salvată de Excel în fișier.
-5. Sheet-urile al căror nume începe cu `_` sunt ignorate. Șablonul le folosește pentru instrucțiuni (`_citeste`) și pentru listele de coduri (`_codes`), care alimentează meniurile derulante din coloanele `code`.
-6. Etichetele din fișierul de localizare ales apar ca note pe celulele de antet, nu ca rânduri suplimentare.
-
-Limitele Excel nu încurcă în practică. Un sheet are maximum 1 048 576 de rânduri, iar numele unui sheet are maximum 31 de caractere, deci `cpt_` plus un identificator de 24 de caractere încape.
+- **Tabelul.** Antetul din specificație pe primul rând și datele de la rândul 2, fără celule îmbinate, fără rânduri de total și fără unitatea pe un rând separat. Fiecare tabel se exportă separat, cu numele de fișier din specificație.
+- **Separatorul și zecimala nu cer setări.** Exportul folosește setările regionale ale sistemului, deci `,` cu `.` sau `;` cu `,`. Ambele dialecte sunt valide (3).
+- **Datele calendaristice** se exportă în formatul afișat, de exemplu `14.10.2026`, care nu e valid. Coloanele de dată se formatează `yyyy-mm-dd` înainte de export.
+- **Codarea.** Se alege „CSV UTF-8”. Varianta „CSV” simplă scrie în codarea locală a sistemului (MacRoman, Windows-1250, Windows-1252), iar diacriticele se pierd.
+- **Valorile se exportă așa cum sunt afișate.** O coloană formatată cu o zecimală pierde restul, iar un număr afișat `1,23E+05` iese 123000. Zerourile de la final dispar (`52.40` devine `52.4`), ceea ce e valid.
+- **Un CSV existent nu se corectează în Excel.** La deschidere, Excel interpretează datele calendaristice și le scrie la salvare în formatul local. Un fișier fără BOM poate fi citit într-o codare greșită, iar textul se corupe fără ca validatorul să poată observa (`Ø` devine `√ò`). Un CSV existent se corectează într-un editor de text. Pentru vizualizare în Excel se folosește importul (Data → From Text/CSV), cu codarea UTF-8.
+- **Separatorii nu se înlocuiesc prin căutare și înlocuire.** Virgulele din text, de exemplu `rotativ uscat, Ø 146 mm`, s-ar schimba fără urmă. Nu e nevoie, pentru că ambele dialecte sunt valide.
 
 ## 9. Reguli de validare
 
@@ -386,8 +371,8 @@ Validarea are 19 reguli: 12 erori, care fac pachetul invalid, și 7 avertismente
 | --- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | E01 | eroare      | `manifest.toml` există și are `format`, `version`, `project.uuid` (UUID valid), `project.id`, `project.name`, `project.crs`. Manifestul și fișierele de campanie sunt TOML valid și respectă schema lor; cheile de încercare și metodele țin de E10, fracțiunile de E11.                                                                      |
 | E02 | eroare      | `points` are cel puțin un rând, iar `campaigns/` are cel puțin un fișier.                                                                                                                                                                                                                                                                     |
-| E03 | eroare      | Fiecare tabel prezent are toate coloanele obligatorii, cu nume și unitate exacte.                                                                                                                                                                                                                                                             |
-| E04 | eroare      | Valorile se pot citi în tipul coloanei, iar câmpurile obligatorii nu sunt goale.                                                                                                                                                                                                                                                              |
+| E03 | eroare      | Fiecare tabel prezent e CSV în UTF-8, într-unul dintre cele două dialecte (3), și are toate coloanele obligatorii, cu nume și unitate exacte.                                                                                                                                                                                                 |
+| E04 | eroare      | Valorile se pot citi în tipul coloanei (numerele cu zecimala dialectului fișierului, datele în forma ISO), iar câmpurile obligatorii nu sunt goale.                                                                                                                                                                                           |
 | E05 | eroare      | `point_id`, `unit_id`, `sample_id` și `test_id` sunt unice în tabelele lor.                                                                                                                                                                                                                                                                   |
 | E06 | eroare      | Toate referințele se rezolvă: fiecare `point_id` din `layers` există în `points`, fiecare `layers.unit` există în `units`, fiecare `campaign` din `points` și `samples` are fișierul `campaigns/<campaign>.toml` ș.a.m.d. Cu mai multe campanii, fiecare punct indică una. Fiecare `source_file` indică un fișier existent în `attachments/`. |
 | E07 | eroare      | `depth_top < depth_base`, iar toate adâncimile sunt în \[0, `final_depth`\] ale punctului.                                                                                                                                                                                                                                                    |
@@ -404,7 +389,7 @@ Validarea are 19 reguli: 12 erori, care fac pachetul invalid, și 7 avertismente
 | W06 | avertisment | Adâncimea de referință a unei probe nu cade în niciun strat al punctului, deci unitatea ei nu se poate deduce.                                                                                                                                                                                                                                |
 | W07 | avertisment | Pachetul are `units.csv`, dar un strat nu are `unit`.                                                                                                                                                                                                                                                                                         |
 
-Validatorul de referință raportează fiecare problemă cu fișierul, rândul și coloana, iar în xlsx cu sheet-ul și celula. Exemplu: `layers.csv:14:depth_base[m] E07 depth_base (3.20) ≤ depth_top (3.40)`.
+Validatorul de referință raportează fiecare problemă cu fișierul, rândul și coloana. Exemplu: `layers.csv:14:depth_base[m] E07 depth_base (3.20) ≤ depth_top (3.40)`.
 
 **Sub-verificări și mesaje.** Fiecare regulă are în schemă (`rules[*].checks`) una sau mai multe sub-verificări, fiecare cu un identificator stabil și un șablon de mesaj în engleză, cu parametri între acolade: E07 are `top_not_above_base` și `beyond_final_depth`, de exemplu. Fișierul de localizare traduce șablonul sub cheia `rules.<cod>.checks.<id>`; fără traducere se folosește șablonul englezesc. Astfel, o altă implementare produce aceleași mesaje citind doar schema.
 
@@ -511,7 +496,7 @@ Nucleul are un corespondent AGS 4 pentru fiecare tabel. Deci un convertor bidire
 
 ## 11b. Schema citibilă de mașină și baza de date
 
-Specificația are o sursă unică, `gdp-0.1.schema.json`. Din ea se obțin validatorul, șablonul xlsx, documentația tabelelor și schema bazei de date. Schema e neutră lingvistic: numele, descrierile și regulile sunt în engleză. Etichetele, sinonimele și mesajele de eroare într-o anumită limbă stau în fișiere de localizare opționale, `locales/gdp-0.1.<lang>.json`. Cheile lor sunt căi în schemă, de exemplu `tables.lab_index.fields.w`. Un element fără intrare de localizare își păstrează numele canonic. Sinonimele (`W`, `Wn`, `umiditate`) servesc mai ales unui AI care mapează documente sursă pe câmpurile canonice. Fișierul conține:
+Specificația are o sursă unică, `gdp-0.1.schema.json`. Din ea se obțin validatorul, documentația tabelelor și schema bazei de date. Schema e neutră lingvistic: numele, descrierile și regulile sunt în engleză. Etichetele, sinonimele și mesajele de eroare într-o anumită limbă stau în fișiere de localizare opționale, `locales/gdp-0.1.<lang>.json`. Cheile lor sunt căi în schemă, de exemplu `tables.lab_index.fields.w`. Un element fără intrare de localizare își păstrează numele canonic. Sinonimele (`W`, `Wn`, `umiditate`) servesc mai ales unui AI care mapează documente sursă pe câmpurile canonice. Fișierul conține:
 
 - tabelele, cu câmpuri, tipuri, unități, chei primare și străine;
 - schemele JSON pentru `manifest.toml` și fișierele de campanie;
@@ -538,7 +523,7 @@ Verificare: două pachete de test, ambele cu un punct `F1`, au fost încărcate 
 
 | #   | Decizie                                                                         | Consecință în specificație                                                                                                                                                                                                                                                                               |
 | --- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | CSV e forma canonică, iar xlsx e o vedere convertibilă.                         | Excel trebuie să fie suportat, dar nu dictează decizii de format (secțiunea 8).                                                                                                                                                                                                                          |
+| 1   | CSV e singura formă a tabelelor.                                                | Formatul e prietenos cu programele de calcul tabelar: exportul lor CSV e valid în ambele dialecte (3), dar nu există o formă xlsx. Capcanele exportului sunt descrise în secțiunea 8.                                                                                                                    |
 | 2   | Numele canonice sunt în engleză.                                                | Schema e neutră lingvistic. Etichetele, sinonimele și mesajele într-o anumită limbă stau în fișiere de localizare opționale, `locales/gdp-0.1.<lang>.json`, separate de schemă și de pachete.                                                                                                            |
 | 3   | Formatul se numește GDP, cu extensia `.gdp`.                                    | `.geo` e evitată, pentru că e deja folosită de Gmsh.                                                                                                                                                                                                                                                     |
 | 4   | Unitățile sunt fixe, fără opțiune `units`.                                      | Unitatea stă în antet, iar validatorul nu face conversii (E03). Conversiile se fac o singură dată, în importatoare.                                                                                                                                                                                      |
@@ -562,6 +547,7 @@ Verificare: două pachete de test, ambele cu un punct `F1`, au fost încărcate 
 | 22  | Lucrările liniare au poziție kilometrică și distanță față de ax.                | `points.station[m]`, `points.offset[m]` (pozitiv la dreapta), `points.alignment`. Coordonatele rămân obligatorii.                                                                                                                                                                                        |
 | 23  | Rândurile pot indica documentul sursă.                                          | Coloana `source_file` (5.6), cu pagină opțională `#page=N`; fișierul trebuie să existe în `attachments/` (E06).                                                                                                                                                                                          |
 | 24  | O cheie de încercare are un singur standard și o singură metodă pe campanie.    | Condiția de drenaj face parte din cheie la încercările de rezistență: cheile rezervate `triaxial_uu`, `triaxial_cu`, `triaxial_cd`, `direct_shear_uu`, `direct_shear_cu`, `direct_shear_cd` (4.4). Un profil poate grupa mai multe chei într-un tabel, cu o coloană care indică cheia.                   |
+| 25  | Dialectul CSV se deduce din antetul fiecărui fișier.                            | Două dialecte, `,` cu `.` și `;` cu `,`, cu zecimala legată de separator (3). Datele calendaristice doar ISO, codarea doar UTF-8. Dialectul nu se declară în manifest, pentru că ar repeta antetul.                                                                                                      |
 
 ### Deschise
 

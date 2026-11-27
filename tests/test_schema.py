@@ -10,8 +10,10 @@ SCHEMA = json.loads((ROOT / "gdp-0.1.schema.json").read_text(encoding="utf-8"))
 EXPECTED = {
     "E01": {"manifest_missing", "toml_syntax", "schema_violation", "required_key", "version_unsupported"},
     "E02": {"no_points", "no_campaigns"},
-    "E03": {"missing_column", "wrong_unit", "duplicate_column", "bad_header", "unreadable"},
-    "E04": {"bad_value", "required_empty", "out_of_bounds", "row_length"},
+    "E03": {"missing_column", "wrong_unit", "duplicate_column", "bad_header", "unreadable", "not_utf8",
+            "separator_unknown"},
+    "E04": {"bad_value", "required_empty", "out_of_bounds", "row_length", "decimal_mark",
+            "bad_date", "bad_datetime"},
     "E05": {"duplicate_key"},
     "E06": {"unresolved", "campaign_unresolved", "campaign_required", "source_unresolved"},
     "E07": {"top_not_above_base", "beyond_final_depth"},

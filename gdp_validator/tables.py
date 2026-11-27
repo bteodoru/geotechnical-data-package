@@ -3,16 +3,15 @@ from __future__ import annotations
 
 import csv
 import datetime as dt
-import io
 import re
 
+from . import csvfile
 from .context import Context, Row, Table, canonical_header
 from .documents import CAMPAIGN_RE, MANIFEST
 from .package import ignored
 from .schema import SCHEMA
 
 HEADER_RE = re.compile(r"^(?P<name>[A-Za-z_][A-Za-z0-9_]*)(\[(?P<unit>[^\]]+)\])?$")
-NUMBER_RE = re.compile(r"^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$")
 INTEGER_RE = re.compile(r"^[+-]?\d+$")
 CPT_DATA_RE = re.compile(r"cpt/data/([^/]+)\.csv")
 
@@ -54,18 +53,22 @@ def run(ctx: Context) -> None:
 
 def read_table(ctx: Context, table: str, path: str) -> Table | None:
     try:
-        text = ctx.pkg.read_text(path)
-        reader = csv.reader(io.StringIO(text, newline=""))
-        records = [(reader.line_num, rec) for rec in reader]
-    except (UnicodeDecodeError, csv.Error) as exc:
+        dialect, records = csvfile.records(ctx.pkg.read_text(path))
+    except UnicodeDecodeError:
+        ctx.out.add("E03", "not_utf8", path)
+        return None
+    except csv.Error as exc:
         ctx.out.add("E03", "unreadable", path, detail=str(exc))
         return None
 
     fields = {f["name"]: f for f in SCHEMA["tables"][table]["fields"]}
     header_cells = [c.strip() for c in records[0][1]] if records else []
+    if len(header_cells) == 1 and not HEADER_RE.match(header_cells[0]):
+        ctx.out.add("E03", "separator_unknown", path, 1)
+        return None
     keys, header, usable = _header(ctx, table, path, fields, header_cells)
 
-    t = Table(table, path, header, [], usable)
+    t = Table(table, path, header, [], usable, dialect["delimiter"], dialect["decimal"])
     for line, rec in records[1:]:
         cells = [c.strip() for c in rec]
         if not any(cells):
@@ -141,12 +144,10 @@ def closed_list(f: dict) -> list[str] | None:
     return vocab if isinstance(vocab, list) else None
 
 
-def _parse(ftype: str, raw: str):
+def _parse(ftype: str, raw: str, decimal: str = "."):
     """Parsed value, or raise ValueError."""
     if ftype == "number":
-        if not NUMBER_RE.match(raw):
-            raise ValueError
-        return float(raw)
+        return csvfile.parse_number(raw, decimal)
     if ftype == "integer":
         if not INTEGER_RE.match(raw):
             raise ValueError
@@ -175,9 +176,15 @@ def _cell(ctx: Context, t: Table, row: Row, f: dict, raw: str) -> None:
             row.ok = False
         return
     try:
-        value = _parse(f["type"], raw)
+        value = _parse(f["type"], raw, t.decimal)
     except ValueError:
-        ctx.out.add("E04", "bad_value", t.path, row.line, column, value=raw, type=f["type"], column=name)
+        if f["type"] == "number" and csvfile.other_decimal(raw, t.decimal):
+            ctx.out.add("E04", "decimal_mark", t.path, row.line, column, value=raw,
+                        delimiter=t.delimiter, decimal=t.decimal)
+        elif f["type"] in ("date", "datetime"):
+            ctx.out.add("E04", f"bad_{f['type']}", t.path, row.line, column, value=raw)
+        else:
+            ctx.out.add("E04", "bad_value", t.path, row.line, column, value=raw, type=f["type"], column=name)
         row.ok = False
         return
     if isinstance(value, float):

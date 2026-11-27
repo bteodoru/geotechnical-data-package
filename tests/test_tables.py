@@ -15,14 +15,15 @@ CASES = [
      ("error", "E12", "both_groups", "lab/index.csv", 1, "gamma[kN/m3]")),
     ("points.csv", ",remarks\n", ",remark\n", ("warning", "W02", "unknown_column", "points.csv", 1, "remark")),
     (L, "F1,0.60,3.80", "F1,0.6O,3.80", ("error", "E04", "bad_value", L, 3, "depth_top[m]")),
-    (L, "F1,0.60,3.80", 'F1,"0,60",3.80', ("error", "E04", "bad_value", L, 3, "depth_top[m]")),
+    (L, "F1,0.60,3.80", 'F1,"0,60",3.80', ("error", "E04", "decimal_mark", L, 3, "depth_top[m]")),
     (L, "F1,0.60,3.80", "F1,0,60,3.80", ("error", "E04", "row_length", L, 3, "")),
     (L, '0.60,"Sol vegetal, cafeniu-negricios",', "0.60,,", ("error", "E04", "required_empty", L, 2, "description")),
     ("samples.csv", "F1-P1,F1,1.50", "F1-P1,F1,-1.50", ("error", "E04", "out_of_bounds", "samples.csv", 2, "depth_top[m]")),
     ("cpt/tests.csv", ",0.80,", ",1.80,", ("error", "E04", "out_of_bounds", "cpt/tests.csv", 2, "area_ratio")),
     ("samples.csv", "F1-P1,F1,1.50", "F1 P1,F1,1.50", ("error", "E04", "bad_value", "samples.csv", 2, "sample_id")),
-    ("points.csv", "8.00,2026-10-14", "8.00,2026-02-30", ("error", "E04", "bad_value", "points.csv", 2, "date_start")),
-    ("water.csv", "T13:10+03:00", "T13:10", ("error", "E04", "bad_value", "water.csv", 2, "datetime")),
+    ("points.csv", "8.00,2026-10-14", "8.00,14.10.2026", ("error", "E04", "bad_date", "points.csv", 2, "date_start")),
+    ("points.csv", "8.00,2026-10-14", "8.00,2026-02-30", ("error", "E04", "bad_date", "points.csv", 2, "date_start")),
+    ("water.csv", "T13:10+03:00", "T13:10", ("error", "E04", "bad_datetime", "water.csv", 2, "datetime")),
     ("points.csv", "F1,borehole", "F1,foraj", ("error", "E10", "unknown_code", "points.csv", 2, "type")),
     ("lab/index.csv", "F1-P1,19.8,", "F1-P1,198,", ("warning", "W03", "implausible", "lab/index.csv", 2, "w[%]")),
     ("cpt/data/CPT1.csv", "0.42,1.82,", "0.42,182,", ("warning", "W03", "implausible", "cpt/data/CPT1.csv", 2, "qc[MPa]")),
@@ -60,15 +61,15 @@ def test_duplicate_column(pkg_a):
 
 def test_unreadable(pkg_a):
     write(pkg_a, "units.csv", "unit_id,name\nU0,Pământ\n".encode("cp1250"))
-    assert ("error", "E03", "unreadable", "units.csv", None, "") in found(validate(pkg_a))
+    assert ("error", "E03", "not_utf8", "units.csv", None, "") in found(validate(pkg_a))
 
 
 def test_decimal_comma_quoted(pkg_a):
     sub(pkg_a, L, "F1,0.60,3.80", 'F1,"0,60",3.80')
     [issue] = _on(validate(pkg_a), L, 3)
-    assert issue.check == "bad_value"
-    assert issue.params == {"value": "0,60", "type": "number", "column": "depth_top"}
-    assert issue.message == "0,60 is not a valid number"
+    assert issue.check == "decimal_mark"
+    assert issue.params == {"value": "0,60", "delimiter": ",", "decimal": "."}
+    assert issue.message == "0,60: in a file separated by , the decimal mark is ."
 
 
 def test_decimal_comma_unquoted(pkg_a):

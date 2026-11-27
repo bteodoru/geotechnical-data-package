@@ -1,5 +1,5 @@
 {
-  "$comment": "GDP (Geotechnical Data Package) v0.1 - machine-readable schema. Single source for the validator, xlsx template, table documentation and database schema. Language-neutral: human-language labels live in optional locale files.",
+  "$comment": "GDP (Geotechnical Data Package) v0.1 - machine-readable schema. Single source for the validator, table documentation and database schema. Language-neutral: human-language labels live in optional locale files.",
   "format": "gdp",
   "version": "0.1",
   "localization": {
@@ -62,8 +62,17 @@
   "csv": {
     "encoding": "utf-8",
     "bom_allowed": true,
-    "delimiter": ",",
-    "decimal": ".",
+    "dialects": [
+      {
+        "delimiter": ",",
+        "decimal": "."
+      },
+      {
+        "delimiter": ";",
+        "decimal": ","
+      }
+    ],
+    "dialect_detection": "Per file, from the header row: the dialect whose delimiter is the only one present in it; otherwise the first. Column names never contain ',' or ';'. Writers should use the first dialect.",
     "quoting": "RFC 4180",
     "missing_value": "",
     "header": "name[unit]; dimensionless quantities without brackets"
@@ -1103,7 +1112,13 @@
           "message": "header cell {cell} is not name or name[unit]"
         },
         "unreadable": {
-          "message": "file is not UTF-8 CSV: {detail}"
+          "message": "file cannot be read as CSV: {detail}"
+        },
+        "not_utf8": {
+          "message": "file is not UTF-8: save it as CSV UTF-8"
+        },
+        "separator_unknown": {
+          "message": "the header is a single cell: columns must be separated by , or ;"
         }
       }
     },
@@ -1124,6 +1139,15 @@
         },
         "row_length": {
           "message": "row has {found} cells, header has {expected}"
+        },
+        "decimal_mark": {
+          "message": "{value}: in a file separated by {delimiter} the decimal mark is {decimal}"
+        },
+        "bad_date": {
+          "message": "{value} is not a valid date (YYYY-MM-DD)"
+        },
+        "bad_datetime": {
+          "message": "{value} is not a valid date and time (YYYY-MM-DDThh:mm with time zone, e.g. 2026-10-14T09:30+03:00)"
         }
       }
     },

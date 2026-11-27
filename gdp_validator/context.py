@@ -24,6 +24,8 @@ class Table:
     header: dict[str, str]          # canonical field name -> header cell as written
     rows: list[Row]
     usable: set[str]
+    delimiter: str = ","
+    decimal: str = "."
 
     def col(self, name: str) -> str:
         if name in self.header:
