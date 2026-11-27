@@ -1,0 +1,31 @@
+{
+  "upload_type": "software",
+  "title": "GDP (Geotechnical Data Package)",
+  "creators": [
+    {
+      "name": "Teodoru, Bogdan",
+      "orcid": "0000-0001-8298-9374"
+    }
+  ],
+  "description": "<p>GDP (Geotechnical Data Package) is a format for the factual data of a geotechnical investigation. People can read and write it by hand, with the tools they already use (a text editor or a spreadsheet), and software, AI assistants included, can validate it automatically and help generate it. A package is a folder of plain CSV tables, distributed as a zip file and described by a small TOML manifest and one file per investigation campaign.</p><p>Contents: the specification v0.1 in English with a Romanian translation, the machine-readable schema (normative), a reference validator with draft mode, a SQLite importer, two example packages and a test suite. Scope: soils only.</p><p>Licences: code, schema, locale files and examples under the MIT License; specification text (spec/) under CC BY 4.0.</p>",
+  "access_right": "open",
+  "license": "mit-license",
+  "keywords": [
+    "geotechnical engineering",
+    "site investigation",
+    "geotechnical data exchange",
+    "data format",
+    "CSV",
+    "AGS 4",
+    "DIGGS"
+  ],
+  "language": "eng",
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/bteodoru/geotechnical-data-package",
+      "relation": "isSupplementTo",
+      "resource_type": "software",
+      "scheme": "url"
+    }
+  ]
+}
