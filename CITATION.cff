@@ -7,6 +7,7 @@ abstract: >-
   CSV tables and TOML files in a zip, with a machine-readable schema,
   a reference validator and a SQLite importer.
 version: 0.1.0
+date-released: 2026-11-28
 authors:
   - family-names: Teodoru
     given-names: Bogdan
