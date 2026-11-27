@@ -93,6 +93,9 @@ def run_manifest(ctx: Context) -> bool:
     """Validate the manifest; False means the remaining checks must be skipped."""
     if ctx.pkg.read_bytes(MANIFEST) is None:
         ctx.out.add("E01", "manifest_missing", MANIFEST)
+        found = ctx.pkg.misplaced_manifests()
+        if found:
+            ctx.out.add("E01", "manifest_elsewhere", MANIFEST, found=", ".join(found))
         return True
     doc = _parse(ctx, MANIFEST)
     if doc is None:

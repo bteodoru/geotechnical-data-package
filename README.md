@@ -32,10 +32,12 @@ project.gdp  (zip)
 └── attachments/           optional: source documents (PDF, GEF…), referenced by source_file
 ```
 
+If a zip has no `manifest.toml` at its root but holds a single folder that has one, as Finder "Compress" and Windows "Send to → Compressed folder" produce, that folder is the package root.
+
 The main rules:
 
 - **One standard and one method per test, per campaign.** Each campaign file declares the standard and the method of every test it contains. A different standard or method means a different campaign. A sample can override the campaign of its point, for example a verification duplicate tested elsewhere.
-- **A package is a complete snapshot of one project.** The project has a mandatory `project.uuid`, generated once and kept across package versions. Importing a package replaces everything stored for that project, so many packages can share one database without key collisions.
+- **A package is a complete snapshot of one project.** The project has a mandatory `project.uuid`, generated once and kept across package versions (without GDP tools: `uuidgen` on macOS and Linux, `New-Guid` in Windows PowerShell). Importing a package replaces everything stored for that project, so many packages can share one database without key collisions.
 - **Spreadsheet-friendly CSV.** A table may use either of the two dialects that spreadsheets write, depending on regional settings: `,` with a decimal point, or `;` with a decimal comma. Each file's dialect is read from its header row. Dates are ISO (`2026-10-14`) and files are UTF-8, so a table prepared with the GDP columns and saved as "CSV UTF-8" is valid as it is.
 - **Fixed SI units.** Each unit is written in the header (`depth[m]`, `qc[MPa]`), spelled as in UCUM, and there is no unit option.
 - **Only measured quantities are stored.** Derived values such as IP, IC or qt are recomputed, so they cannot be inconsistent.

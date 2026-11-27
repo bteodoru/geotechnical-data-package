@@ -140,3 +140,18 @@ def test_manifest_only(pkg_a, tmp_path):
     shutil.copy(pkg_a / "manifest.toml", only / "manifest.toml")
     assert found(validate(only)) == {("error", "E02", "no_points", "points.csv", None, ""),
                                      ("error", "E02", "no_campaigns", "campaigns/", None, "")}
+
+
+def test_date_messages_name_the_fix(pkg_a):
+    sub(pkg_a, "points.csv", "8.00,2026-10-14", "8.00,14.10.2026")
+    sub(pkg_a, "water.csv", "T13:10+03:00", "T13:10")
+    msgs = {i.check: i.message for i in validate(pkg_a).issues if i.check in ("bad_date", "bad_datetime")}
+    assert msgs["bad_date"] == ("14.10.2026 is not a valid date (YYYY-MM-DD); "
+                                "in a spreadsheet, format the column as yyyy-mm-dd before exporting")
+    assert msgs["bad_datetime"].endswith("in a spreadsheet, enter it as text in this form")
+
+
+def test_unknown_column_message_says_not_read(pkg_a):
+    sub(pkg_a, "lab/index.csv", ",remarks\n", ",IP\n")
+    [issue] = [i for i in validate(pkg_a).issues if i.check == "unknown_column"]
+    assert issue.message == "unknown column IP: not read (custom columns need the x_ prefix)"

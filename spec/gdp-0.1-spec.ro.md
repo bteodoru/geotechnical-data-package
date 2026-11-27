@@ -18,7 +18,7 @@ Nucleul v0.1 acoperă datele factuale ale unei investigații: puncte de investig
 
 ## 2. Structura pachetului
 
-Un pachet `.gdp` e un zip cu căi fixe. Sunt obligatorii `manifest.toml`, `points.csv` și cel puțin un fișier în `campaigns/`. Restul fișierelor apar numai dacă există date pentru ele.
+Un pachet `.gdp` e un zip cu căi fixe. Sunt obligatorii `manifest.toml`, `points.csv` și cel puțin un fișier în `campaigns/`. Restul fișierelor apar numai dacă există date pentru ele. Dacă zip-ul nu are `manifest.toml` în rădăcină, dar conține un singur folder care îl are, cum produc „Compress” din Finder și „Send to → Compressed folder” din Windows, acel folder e rădăcina pachetului; metadatele arhivatorului (`__MACOSX/`, `.DS_Store`, `._*`) se ignoră, iar căile din mesaje sunt relative la rădăcina pachetului.
 
 ```
 proiect.gdp
@@ -69,7 +69,7 @@ Regulile de mai jos se aplică tuturor tabelelor.
 | Unități             | SI, fixate de specificație pentru fiecare coloană. Unitatea din antet trebuie să coincidă cu cea specificată (v0.1 nu face conversii).                                                                                           |
 | Valoare lipsă       | Celulă goală. Nu se folosesc `-999`, `N/A`, `-`.                                                                                                                                                                                 |
 | Tipuri              | `id`, `text`, `number`, `integer`, `date` (`YYYY-MM-DD`, doar forma ISO), `datetime` (ISO 8601 cu fus orar, `2026-10-14T09:30+03:00`), `bool` (`true`/`false`), `code` (dintr-o listă de coduri).                                                |
-| Identificatori      | Caractere `A–Z a–z 0–9 _ - .`, fără spații, maximum 24 de caractere, sensibili la majuscule. Sunt folosiți și ca nume de fișiere.                                                                                |
+| Identificatori      | Caractere `A–Z a–z 0–9 _ - .`, fără spații, maximum 24 de caractere, sensibili la majuscule. Sunt folosiți și ca nume de fișiere. Se recomandă identificatori care încep cu o literă (`F1`, `P1`, `F1-P2bis`), ca programele de calcul tabelar să nu-i transforme în date calendaristice sau numere și să nu piardă zerourile de la început. |
 | Adâncimi            | Metri sub nivelul terenului din punctul respectiv, pozitive în jos. Un interval e `[depth_top, depth_base)`, cu `depth_top < depth_base`. Ultimul interval al unui punct include și baza, când aceasta e egală cu `final_depth`. |
 | Cote                | Metri față de datumul vertical din manifest (de exemplu Marea Neagră 1975).                                                                                                                                                      |
 | Coordonate          | Un singur CRS per proiect, declarat în manifest ca cod EPSG (de exemplu `EPSG:3844`, Stereo 70). Coloanele se numesc `easting` și `northing`, ca să nu existe ambiguitatea X/Y din Stereo 70.                                    |
@@ -82,7 +82,7 @@ Contextul pachetului stă în două locuri. `manifest.toml` spune ce e pachetul,
 
 ### 4.1 `manifest.toml`
 
-Manifestul are circa 20 de linii și nu crește odată cu datele. Cheia `project.uuid` identifică proiectul la nivel global. O generează o singură dată software-ul care creează proiectul, iar ea nu se schimbă la versiunile ulterioare ale pachetului. `project.id` rămâne codul intern, lizibil, al proiectului.
+Manifestul are circa 20 de linii și nu crește odată cu datele. Cheia `project.uuid` identifică proiectul la nivel global. Se generează o singură dată, la crearea proiectului, și nu se schimbă la versiunile ulterioare ale pachetului. Fără instrumentele GDP se obține cu `uuidgen` (macOS, Linux) sau cu `New-Guid` în PowerShell (Windows). `project.id` rămâne codul intern, lizibil, al proiectului.
 
 Un pachet e întotdeauna o **imagine completă** a proiectului, nu o diferență față de o versiune anterioară. O bază de date care importă pachetul înlocuiește tot ce avea pentru acel `project.uuid`. Versiunea se recunoaște după `producer.date`. În baza de date, cheia fiecărei entități devine perechea (proiect, identificator local), de exemplu (`project.uuid`, `point_id`).
 
@@ -361,6 +361,7 @@ Secțiunea nu adaugă reguli. Descrie capcanele întâlnite când un tabel se pr
 - **Codarea.** Se alege „CSV UTF-8”. Varianta „CSV” simplă scrie în codarea locală a sistemului (MacRoman, Windows-1250, Windows-1252), iar diacriticele se pierd.
 - **Valorile se exportă așa cum sunt afișate.** O coloană formatată cu o zecimală pierde restul, iar un număr afișat `1,23E+05` iese 123000. Zerourile de la final dispar (`52.40` devine `52.4`), ceea ce e valid.
 - **Un CSV existent nu se corectează în Excel.** La deschidere, Excel interpretează datele calendaristice și le scrie la salvare în formatul local. Un fișier fără BOM poate fi citit într-o codare greșită, iar textul se corupe fără ca validatorul să poată observa (`Ø` devine `√ò`). Un CSV existent se corectează într-un editor de text. Pentru vizualizare în Excel se folosește importul (Data → From Text/CSV), cu codarea UTF-8.
+- **Identificatorii** care încep cu o cifră (`1-2`, `3.10`, `007`) pot deveni date calendaristice sau numere, iar zerourile de la început se pierd. Se recomandă identificatori care încep cu o literă (3).
 - **Separatorii nu se înlocuiesc prin căutare și înlocuire.** Virgulele din text, de exemplu `rotativ uscat, Ø 146 mm`, s-ar schimba fără urmă. Nu e nevoie, pentru că ambele dialecte sunt valide.
 
 ## 9. Reguli de validare

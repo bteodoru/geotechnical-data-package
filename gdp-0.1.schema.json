@@ -1063,6 +1063,9 @@
           "message": "manifest.toml not found",
           "missing": true
         },
+        "manifest_elsewhere": {
+          "message": "manifest.toml is not at the package root; found at {found}"
+        },
         "toml_syntax": {
           "message": "TOML syntax error: {detail}"
         },
@@ -1144,10 +1147,10 @@
           "message": "{value}: in a file separated by {delimiter} the decimal mark is {decimal}"
         },
         "bad_date": {
-          "message": "{value} is not a valid date (YYYY-MM-DD)"
+          "message": "{value} is not a valid date (YYYY-MM-DD); in a spreadsheet, format the column as yyyy-mm-dd before exporting"
         },
         "bad_datetime": {
-          "message": "{value} is not a valid date and time (YYYY-MM-DDThh:mm with time zone, e.g. 2026-10-14T09:30+03:00)"
+          "message": "{value} is not a valid date and time (YYYY-MM-DDThh:mm with time zone, e.g. 2026-10-14T09:30+03:00); in a spreadsheet, enter it as text in this form"
         }
       }
     },
@@ -1296,7 +1299,7 @@
       "text": "Unknown column without x_ prefix.",
       "checks": {
         "unknown_column": {
-          "message": "unknown column {column} (extensions need the x_ prefix)"
+          "message": "unknown column {column}: not read (custom columns need the x_ prefix)"
         },
         "unknown_file": {
           "message": "unknown file {file}"

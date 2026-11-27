@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SCHEMA = json.loads((ROOT / "gdp-0.1.schema.json").read_text(encoding="utf-8"))
 
 EXPECTED = {
-    "E01": {"manifest_missing", "toml_syntax", "schema_violation", "required_key", "version_unsupported"},
+    "E01": {"manifest_missing", "manifest_elsewhere", "toml_syntax", "schema_violation", "required_key", "version_unsupported"},
     "E02": {"no_points", "no_campaigns"},
     "E03": {"missing_column", "wrong_unit", "duplicate_column", "bad_header", "unreadable", "not_utf8",
             "separator_unknown"},
