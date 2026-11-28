@@ -10,7 +10,7 @@ Compared with AGS 4 and DIGGS:
 |---|---|---|---|
 | Layout | one or more `.ags` files, each with several groups (GROUP/HEADING/UNIT/TYPE rows) | one XML/GML document: `samplingFeature`, `sample`, `observation`, `measurement`… with nested properties | one CSV per table |
 | Names | abbreviated codes (`GEOL_TOP`) | namespaced XML elements (`totalMeasuredDepth`) | readable names with the unit in the header (`depth_top[m]`) |
-| Keys | `LOCA_ID` for locations; composite keys in child groups (`LOCA_ID`, `GEOL_TOP`, `GEOL_BASE`) | `gml:id` on identifiable objects, referenced with `xlink:href="#id"` | one identifier per entity, unique in the project |
+| Keys | `LOCA_ID` for locations; composite keys in child groups (`LOCA_ID`, `GEOL_TOP`, `GEOL_BASE`) | `gml:id` on identifiable objects, referenced with `xlink:href="#id"` | one identifier per entity, unique in the project (layers: point and top depth) |
 | Units | declared per group in the UNIT row | given with measured values (`uom="m"`), depending on the data type | fixed per field, written once in the header |
 | Context | standards in `STND`, methods in test fields (`*_METH`) | a `procedure` with each test | per campaign: standards, methods and grain-size limits declared once |
 | Manual authoring | possible, with the data dictionary at hand | possible, but verbose | designed for a text editor or a spreadsheet |

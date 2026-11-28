@@ -8,12 +8,12 @@ The machine-readable schema [`gdp-0.1.schema.json`](../gdp-0.1.schema.json) is n
 
 GDP (Geotechnical Data Package) is a format for the factual data of a geotechnical investigation. People can read and write it by hand, with the tools they already use (a text editor or a spreadsheet), and software, AI assistants included, can validate it automatically and help generate it. Two established formats already cover this data. AGS 4 is widely used, but its syntax and its dependence on a data dictionary make it hard to write or check by hand. DIGGS is comprehensive, but its XML/GML representation is verbose and hard to write, read or check by hand. GDP aims to be simpler than both: a package is a folder of plain CSV tables, distributed as a zip file and described by a small TOML manifest and one file per investigation campaign.
 
-The v0.1 core covers the factual data of an investigation: investigation points, layering, groundwater, samples, laboratory index tests and CPT/CPTu. Interpretation (geotechnical units, characteristic values, ground model) stays outside the core. The format is limited to soils; rocks belong to rock mechanics and are out of scope for now. The package extension is `.gdp`.
+The v0.1 core covers the factual data of an investigation: investigation points, layering, groundwater, samples, laboratory index tests and CPT/CPTu. Interpretation (characteristic values, ground model) stays outside the core; the core holds only a light grouping of layers into geotechnical units (`units.csv`, 5.5). The format is limited to soils; rocks belong to rock mechanics and are out of scope for now. The package extension is `.gdp`.
 
 - **CSV, spreadsheet-friendly.** Tables are plain CSV files, in one of the two dialects that spreadsheets write depending on regional settings: `,` with a decimal point, or `;` with a decimal comma. A table prepared with the columns of this specification, with ISO dates and saved as "CSV UTF-8", is valid without regional settings and without a converter (section 8). The format has no xlsx form.
 - **One table = one file.** No GROUP/UNIT/TYPE rows and no unnecessary quotes.
 - **Readable names, with the unit in the header:** `depth_top[m]`, not `GEOL_TOP`. Unit symbols are written in UCUM, case-sensitive variant (`Mg/m3`, `kN/m3`, `cm2`, `deg`).
-- **Simple keys.** Each entity has a single identifier, unique in the project. There are no composite keys.
+- **Simple keys.** Each entity has a single identifier, unique in the project. The exception is layers, identified by their point and top depth (`point_id`, `depth_top`).
 - **Only measured quantities are stored.** Derived quantities (IP, IC, qt, Rf, Bq, Ic) are recomputed, so they cannot be inconsistent.
 - **Small core + separately versioned profiles** (`cpt`, `lab_index`). The package declares which profiles it uses.
 - **Extensible without negotiation.** Custom columns take the `x_` prefix and are ignored by readers that do not know them.
@@ -57,7 +57,7 @@ samples.campaign ─┘
 
 The unit of a sample, or of a depth in a CPT series, is not written anywhere. It is derived: point + depth → layer → unit (section 5.5).
 
-A reader ignores files it does not know. So a v0.2 package with a new profile remains readable for a v0.1 reader.
+A reader ignores files it does not know. So a v0.2 package with a new profile remains readable for a v0.1 reader. The validator reports unknown files as warnings (W02), so that a misnamed file is noticed; files in `attachments/` and archiver metadata are not reported.
 
 ## 3. General conventions
 
@@ -70,7 +70,7 @@ The rules below apply to all tables.
 | Header                  | First row. The column name is exactly the one in the specification, with the unit in square brackets: `depth_top[m]`. Dimensionless quantities have no brackets.                              |
 | Units                   | SI, fixed by the specification for each column. The unit in the header must match the specified one (v0.1 does no conversions).                                                               |
 | Missing value           | Empty cell. `-999`, `N/A`, `-` are not used.                                                                                                                                                  |
-| Types                   | `id`, `text`, `number`, `integer`, `date` (`YYYY-MM-DD`, ISO form only), `datetime` (ISO 8601 with UTC offset, `2026-10-14T09:30+03:00`), `bool` (`true`/`false`), `code` (from a code list). |
+| Types                   | `id`, `text`, `number`, `integer`, `date` (`YYYY-MM-DD`, ISO form only), `datetime` (ISO 8601 with UTC offset, `2026-10-14T09:30+03:00`), `bool` (`true`/`false`), `code` (from a code list), `file_ref` (a path relative to `attachments/`, optionally followed by `#page=N`, the page of a PDF counted from 1; 5.6). |
 | Identifiers             | Characters `A–Z a–z 0–9 _ - .`, no spaces, at most 64 characters, case-sensitive. They are also used as file names. Identifiers that start with a letter are recommended (`F1`, `P1`, `F1-P2bis`), so that spreadsheets do not turn them into dates or numbers and do not drop leading zeros. |
 | Depths                  | Metres below ground level at the point, positive downwards. An interval is `[depth_top, depth_base)`, with `depth_top < depth_base`. The last interval of a point also includes its base, when the base equals `final_depth`. |
 | Elevations              | Metres relative to the vertical datum declared in the manifest (for example Marea Neagră 1975, the Romanian Black Sea datum).                                                                 |
@@ -204,7 +204,7 @@ TOML was chosen over YAML because it has no indentation traps and does not silen
 
 ## 5. Core tables
 
-The core has five tables, with 40 columns in total, of which 18 are required. All are linked to `points` through `point_id`.
+The core has five tables, with 40 columns in total, of which 18 are required. All except `units` are linked to `points` through `point_id`; `units` is referenced by `layers.unit`.
 
 ### 5.1 `points.csv`: investigation points
 
@@ -377,8 +377,8 @@ Validation has 19 rules: 12 errors, which make the package invalid, and 7 warnin
 | E01  | error   | `manifest.toml` exists and has `format`, `version`, `project.uuid` (a valid UUID), `project.id`, `project.name`, `project.crs`. The manifest and the campaign files are valid TOML and match their schemas; test keys and methods belong to E10, fractions to E11. |
 | E02  | error   | `points` has at least one row, and `campaigns/` has at least one file.                                                                                                                |
 | E03  | error   | Each table present is CSV in UTF-8, in one of the two dialects (3), and has all the required columns, with exact name and unit.                                                       |
-| E04  | error   | Values can be read as the column type (numbers with the decimal mark of the file's dialect, dates in ISO form), and required fields are not empty.                                    |
-| E05  | error   | `point_id`, `unit_id`, `sample_id` and `test_id` are unique in their tables.                                                                                                          |
+| E04  | error   | Values can be read as the column type (numbers with the decimal mark of the file's dialect, dates in ISO form), required fields are not empty, and values are within the bounds of their column (`out_of_bounds`): `final_depth`, and `depth_top` in layers and samples, ≥ 0; `area_ratio` in [0, 1]. |
+| E05  | error   | Primary keys are unique: `point_id` in `points`, `unit_id` in `units`, (`point_id`, `depth_top`) in `layers`, `sample_id` in `samples` and in `lab_index`, `test_id` in `cpt/tests`. In CPT data files, `depth` is unique because it is strictly increasing (E09). |
 | E06  | error   | All references resolve: every `point_id` in `layers` exists in `points`, every `layers.unit` exists in `units`, every `campaign` in `points` and `samples` has the file `campaigns/<campaign>.toml`, and so on. With several campaigns, every point names one. Every `source_file` names an existing file in `attachments/`. |
 | E07  | error   | `depth_top < depth_base`, and all depths are within [0, `final_depth`] of the point.                                                                                                  |
 | E08  | error   | The layers of a point do not overlap.                                                                                                                                                 |
@@ -387,7 +387,7 @@ Validation has 19 rules: 12 errors, which make the package invalid, and 7 warnin
 | E11  | error   | For each test with data, the campaign of the row declares the standard in `[standards]` (a standard or `"unknown"`). If there are grain-size fractions, `[fractions].source` is a known standard, or `"custom"` with a complete `upper_mm`. |
 | E12  | error   | `lab_index` holds either `rho`/`rho_s` or `gamma`/`gamma_s`, not both pairs.                                                                                                          |
 | W01  | warning | There are gaps between the layers of a point, or the layering does not start at 0 or does not reach `final_depth`.                                                                    |
-| W02  | warning | An unknown column without the `x_` prefix. It is probably a typing error.                                                                                                             |
+| W02  | warning | An unknown column without the `x_` prefix: it is not read, and it is probably a typing error. An unknown file outside `attachments/`.                                                 |
 | W03  | warning | Values outside plausible ranges: `w > 150 %`, `qc > 100 MPa`, `rho` outside [1.2, 2.6] Mg/m³ (the equivalent in kN/m³ for `gamma`).                                                   |
 | W04  | warning | The sum of the grain-size fractions differs from 100 % by more than ±1 %.                                                                                                             |
 | W05  | warning | A standard in `[standards]` is not in the registry of the implementation. It may be a new standard, an old one or a misspelling.                                                      |
@@ -555,6 +555,10 @@ The decisions below record the reasons behind the format: those already taken, a
 | 23  | Rows can name their source document.                                         | The column `source_file` (5.6), with an optional page `#page=N`; the file must exist in `attachments/` (E06).                                                                                                               |
 | 24  | A test key has one standard and one method per campaign.                     | For strength tests the drainage condition is part of the key: the reserved keys `triaxial_uu`, `triaxial_cu`, `triaxial_cd`, `direct_shear_uu`, `direct_shear_cu`, `direct_shear_cd` (4.4). A profile can group several keys in one table, with a column that names the key. |
 | 25  | The CSV dialect is detected from the header of each file.                    | Two dialects, `,` with `.` and `;` with `,`, with the decimal mark tied to the separator (3). Dates in ISO form only, encoding UTF-8 only. The dialect is not declared in the manifest, because it would repeat the header. |
+| 26  | A zip with no `manifest.toml` at its root, whose single top-level folder holds one, has that folder as package root. | Finder "Compress" and Windows "Send to → Compressed folder" add this level. Archiver metadata (`__MACOSX/`, `.DS_Store`, `._*`) is ignored, and paths in messages are relative to the root. The rule is for zips only: a folder given to the tools must be the package root itself (2). |
+| 27  | Unknown columns are reported (W02) and not read.                             | There is no list of derived quantities to ignore: users rebuild their tables with the GDP columns, and a derived quantity may be written `IP`, `I_p` or `ind_pl`, so such a list could never be complete (9).               |
+| 28  | A misplaced `manifest.toml` is a single fatal error.                         | When `manifest.toml` is not at the package root but exists elsewhere in the package, the only issue is E01 `manifest_elsewhere`, which says where it is, and no other check runs: the package cannot be interpreted, and the other errors would only be consequences. It stays an error in draft mode (2, 9). |
+| 29  | Identifiers have at most 64 characters.                                      | `types.id` in the schema. The former limit of 24 characters came from xlsx sheet names, which no longer apply because the format has no xlsx form (3).                                                                      |
 
 ### Open
 
